@@ -138,14 +138,27 @@ export default function Home() {
         );
 
         if (!matchingCategory) {
+            const isOneAway = categories.some((category) => {
+                const matchingWordsCount = category.words.filter((word) =>
+                    selectedWords.includes(word),
+                ).length;
+
+                return matchingWordsCount === 3;
+            });
+
             const newMistakes = mistakes + 1;
 
             setMistakes(newMistakes);
-            setSelectedWords([]);
+            // setSelectedWords([]);
 
             if (newMistakes >= maximumMistakes) {
                 setGameStatus("lost");
                 setMessage("Koniec gry. Oto pozostałe rozwiązania.");
+                return;
+            }
+
+            if (isOneAway) {
+                setMessage("Brakuje jednego!");
                 return;
             }
 
