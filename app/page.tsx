@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 
+type GameStatus = "playing" | "won" | "lost";
+
 type Category = {
     name: string;
     words: string[];
@@ -71,12 +73,17 @@ export default function Home() {
     const [selectedWords, setSelectedWords] = useState<string[]>([]);
     const [solvedCategories, setSolvedCategories] = useState<Category[]>([]);
     const [message, setMessage] = useState("");
+    const [mistakes, setMistakes] = useState(0);
+    const [gameStatus, setGameStatus] = useState<GameStatus>("playing");
 
     useEffect(() => {
         setBoardWords(shuffle(initialWords));
     }, []);
 
     function toggleWord(word: string) {
+        if (gameStatus !== "playing") {
+            return;
+        }
         const isSelected = selectedWords.includes(word);
 
         setMessage("");
@@ -111,16 +118,35 @@ export default function Home() {
         );
 
         if (!matchingCategory) {
+            const newMistakes = mistakes + 1;
+
+            setMistakes(newMistakes);
+            setSelectedWords([]);
+
+            if (newMistakes >= maximumMistakes) {
+                setGameStatus("lost");
+                setMessage("Koniec gry. Oto pozostałe rozwiązania.");
+                return;
+            }
+
             setMessage("Te słowa nie tworzą grupy.");
             return;
         }
 
-        setSolvedCategories((previousCategories) => [
-            ...previousCategories,
+        const newSolvedCategories = [
+            ...solvedCategories,
             matchingCategory,
-        ]);
+        ];
 
+        setSolvedCategories(newSolvedCategories);
         setSelectedWords([]);
+
+        if (newSolvedCategories.length === categories.length) {
+            setGameStatus("won");
+            setMessage("Brawo! Wszystkie grupy zostały rozwiązane.");
+            return;
+        }
+
         setMessage("Dobrze!");
     }
 
@@ -132,9 +158,19 @@ export default function Home() {
         (category) => category.words,
     );
 
-    const remainingWords = boardWords.filter(
-        (word) => !solvedWords.includes(word),
-    );
+    const maximumMistakes = 4;
+    const remainingLives = Math.max(maximumMistakes - mistakes, 0);
+    const displayedCategories =
+        gameStatus === "lost"
+            ? categories
+            : solvedCategories;
+
+    const remainingWords =
+        gameStatus === "lost"
+            ? []
+            : boardWords.filter(
+                (word) => !solvedWords.includes(word),
+            );
 
     return (
         <main className="min-h-screen bg-stone-800 px-4 py-8 text-white">
@@ -148,7 +184,7 @@ export default function Home() {
                 </header>
 
                 <section className="mb-2 space-y-2">
-                    {solvedCategories.map((category) => (
+                    {displayedCategories.map((category) => (
                         <div
                             key={category.name}
                             className="rounded-md bg-yellow-300 p-5 text-center"
@@ -184,14 +220,26 @@ export default function Home() {
                     })}
                 </section>
 
+
                 <div className="mt-5 flex flex-col items-center gap-3">
+                    <div className="flex items-center gap-2">
+                        <span className="mr-1">Pozostałe próby:</span>
+
+                        {Array.from({ length: remainingLives }).map((_, index) => (
+                            <span
+                                key={index}
+                                className="h-4 w-4 rounded-full bg-white"
+                            />
+                        ))}
+                    </div>
                     <p>Zaznaczono: {selectedWords.length} / 4</p>
 
                     <div className="flex gap-3">
                         <button
                             type="button"
                             onClick={shuffleWords}
-                            className="rounded-full border border-white px-6 py-3 font-bold transition hover:bg-white hover:text-stone-900"
+                            disabled={gameStatus !== "playing"}
+                            className="rounded-full border border-white px-6 py-3 font-bold transition hover:bg-white hover:text-stone-900 disabled:cursor-not-allowed disabled:opacity-40"
                         >
                             Pomieszaj
                         </button>
@@ -199,14 +247,26 @@ export default function Home() {
                         <button
                             type="button"
                             onClick={checkSelection}
-                            disabled={selectedWords.length !== 4}
+                            disabled={
+                                selectedWords.length !== 4 ||
+                                gameStatus !== "playing"
+                            }
                             className="rounded-full bg-white px-6 py-3 font-bold text-stone-900 transition disabled:cursor-not-allowed disabled:bg-stone-600 disabled:text-stone-400"
                         >
                             Sprawdź
                         </button>
                     </div>
 
-                    <p className="min-h-6 font-medium">{message}</p>
+                    <p
+                        className={`min-h-6 text-center font-medium ${gameStatus === "won"
+                                ? "text-green-400"
+                                : gameStatus === "lost"
+                                    ? "text-red-400"
+                                    : "text-white"
+                            }`}
+                    >
+                        {message}
+                    </p>
                 </div>
             </div>
         </main>
