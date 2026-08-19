@@ -4,27 +4,34 @@ import { useEffect, useState } from "react";
 
 type GameStatus = "playing" | "won" | "lost";
 
+type Difficulty = 1 | 2 | 3 | 4;
+
 type Category = {
     name: string;
     words: string[];
+    difficulty: Difficulty;
 };
 
 const categories: Category[] = [
     {
         name: "Rzeki w Polsce",
         words: ["WISŁA", "ODRA", "BUG", "WARTA"],
+        difficulty: 1,
     },
     {
         name: "Planety",
         words: ["MARS", "WENUS", "ZIEMIA", "JOWISZ"],
+        difficulty: 2,
     },
     {
         name: "Elementy komputera",
         words: ["PORT", "MYSZ", "EKRAN", "KLAWIATURA"],
+        difficulty: 3,
     },
     {
         name: "Związane z zamkiem",
         words: ["ZAMEK", "KLUCZ", "KORONA", "WIEŻA"],
+        difficulty: 4,
     },
 ];
 
@@ -66,6 +73,19 @@ function shuffle<T>(items: T[]): T[] {
     }
 
     return shuffledItems;
+}
+
+function getCategoryColor(difficulty: Difficulty): string {
+    switch (difficulty) {
+        case 1:
+            return "bg-yellow-300";
+        case 2:
+            return "bg-green-400";
+        case 3:
+            return "bg-blue-400";
+        case 4:
+            return "bg-purple-400";
+    }
 }
 
 export default function Home() {
@@ -160,10 +180,14 @@ export default function Home() {
 
     const maximumMistakes = 4;
     const remainingLives = Math.max(maximumMistakes - mistakes, 0);
-    const displayedCategories =
-        gameStatus === "lost"
+    const displayedCategories = [
+        ...(gameStatus === "lost"
             ? categories
-            : solvedCategories;
+            : solvedCategories),
+    ].sort(
+        (firstCategory, secondCategory) =>
+            firstCategory.difficulty - secondCategory.difficulty,
+    );
 
     const remainingWords =
         gameStatus === "lost"
@@ -187,7 +211,9 @@ export default function Home() {
                     {displayedCategories.map((category) => (
                         <div
                             key={category.name}
-                            className="rounded-md bg-yellow-300 p-5 text-center"
+                            className={`rounded-md p-5 text-center text-black ${getCategoryColor(
+                                category.difficulty,
+                            )}`}
                         >
                             <h2 className="font-bold">
                                 {category.name}
@@ -259,10 +285,10 @@ export default function Home() {
 
                     <p
                         className={`min-h-6 text-center font-medium ${gameStatus === "won"
-                                ? "text-green-400"
-                                : gameStatus === "lost"
-                                    ? "text-red-400"
-                                    : "text-white"
+                            ? "text-green-400"
+                            : gameStatus === "lost"
+                                ? "text-red-400"
+                                : "text-white"
                             }`}
                     >
                         {message}
