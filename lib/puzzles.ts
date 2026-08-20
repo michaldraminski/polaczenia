@@ -2,31 +2,18 @@ import "server-only";
 
 import { getCurrentDateInPoland } from "./date";
 import { createServerSupabaseClient } from "./supabase/server";
-import type {
-    Category,
-    Difficulty,
-    Puzzle,
-} from "../types/game";
+import type { PublicPuzzle, Word } from "../types/game";
 
 type CategoryRow = {
     id: number;
-    name: string;
-    difficulty: number;
 };
 
 type WordRow = {
-    category_id: number;
+    id: number;
     value: string;
-    position: number;
 };
 
-function isDifficulty(
-    value: number,
-): value is Difficulty {
-    return value >= 1 && value <= 4;
-}
-
-export async function getTodaysPuzzle(): Promise<Puzzle | null> {
+export async function getTodaysPuzzle(): Promise<PublicPuzzle | null> {
     const supabase = createServerSupabaseClient();
     const currentDate = getCurrentDateInPoland();
 
@@ -55,9 +42,8 @@ export async function getTodaysPuzzle(): Promise<Puzzle | null> {
         error: categoriesError,
     } = await supabase
         .from("categories")
-        .select("id, name, difficulty")
-        .eq("puzzle_id", puzzleRow.id)
-        .order("difficulty");
+        .select("id")
+        .eq("puzzle_id", puzzleRow.id);
 
     if (categoriesError) {
         throw new Error(
@@ -65,18 +51,24 @@ export async function getTodaysPuzzle(): Promise<Puzzle | null> {
         );
     }
 
-    const categoryIds = categoryRows.map(
+    const categories = categoryRows as CategoryRow[];
+    const categoryIds = categories.map(
         (category) => category.id,
     );
+
+    if (categoryIds.length === 0) {
+        throw new Error(
+            "Plansza nie zawiera żadnych kategorii.",
+        );
+    }
 
     const {
         data: wordRows,
         error: wordsError,
     } = await supabase
         .from("words")
-        .select("category_id, value, position")
-        .in("category_id", categoryIds)
-        .order("position");
+        .select("id, value")
+        .in("category_id", categoryIds);
 
     if (wordsError) {
         throw new Error(
@@ -84,35 +76,16 @@ export async function getTodaysPuzzle(): Promise<Puzzle | null> {
         );
     }
 
-    const categories: Category[] = (
-        categoryRows as CategoryRow[]
-    ).map((categoryRow) => {
-        if (!isDifficulty(categoryRow.difficulty)) {
-            throw new Error(
-                `Niepoprawna trudność kategorii: ${categoryRow.difficulty}`,
-            );
-        }
-
-        const words = (wordRows as WordRow[])
-            .filter(
-                (wordRow) =>
-                    wordRow.category_id === categoryRow.id,
-            )
-            .sort(
-                (firstWord, secondWord) =>
-                    firstWord.position -
-                    secondWord.position,
-            )
-            .map((wordRow) => wordRow.value);
-
-        return {
-            name: categoryRow.name,
-            difficulty: categoryRow.difficulty,
-            words,
-        };
-    });
+    const words: Word[] = (wordRows as WordRow[]).map(
+        (wordRow) => ({
+            id: wordRow.id,
+            value: wordRow.value,
+        }),
+    );
 
     return {
-        categories,
+        id: puzzleRow.id,
+        words,
+        categoryCount: categories.length,
     };
 }

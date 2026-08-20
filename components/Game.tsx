@@ -4,19 +4,30 @@ import { useEffect, useState } from "react";
 
 import { shuffle } from "../lib/shuffle";
 import type {
-    Category,
+    CheckResult,
     Difficulty,
     GameStatus,
-    Puzzle,
+    PublicPuzzle,
+    SolvedCategory,
 } from "../types/game";
 
 type GameProps = {
-    puzzle: Puzzle;
+    puzzle: PublicPuzzle;
+};
+
+type ErrorResponse = {
+    error?: string;
+};
+
+type RevealResponse = {
+    categories: SolvedCategory[];
 };
 
 const maximumMistakes = 4;
 
-function getCategoryColor(difficulty: Difficulty): string {
+function getCategoryColor(
+    difficulty: Difficulty,
+): string {
     switch (difficulty) {
         case 1:
             return "bg-yellow-300";
@@ -29,151 +40,226 @@ function getCategoryColor(difficulty: Difficulty): string {
     }
 }
 
-function getPuzzleWords(puzzle: Puzzle): string[] {
-    return puzzle.categories.flatMap(
-        (category) => category.words,
-    );
-}
-
 export default function Game({ puzzle }: GameProps) {
-    const categories = puzzle.categories;
-
-    const [boardWords, setBoardWords] = useState<string[]>(
-        () => getPuzzleWords(puzzle),
+    const [boardWords, setBoardWords] = useState(
+        puzzle.words,
     );
 
-    const [selectedWords, setSelectedWords] =
-        useState<string[]>([]);
+    const [
+        selectedWordIds,
+        setSelectedWordIds,
+    ] = useState<number[]>([]);
 
-    const [solvedCategories, setSolvedCategories] =
-        useState<Category[]>([]);
+    const [
+        solvedCategories,
+        setSolvedCategories,
+    ] = useState<SolvedCategory[]>([]);
 
     const [message, setMessage] = useState("");
-
     const [mistakes, setMistakes] = useState(0);
 
     const [gameStatus, setGameStatus] =
         useState<GameStatus>("playing");
 
+    const [isChecking, setIsChecking] =
+        useState(false);
+
     useEffect(() => {
-        setBoardWords(
-            shuffle(getPuzzleWords(puzzle)),
-        );
+        setBoardWords(shuffle(puzzle.words));
     }, [puzzle]);
 
-    function toggleWord(word: string) {
-        if (gameStatus !== "playing") {
+    function toggleWord(wordId: number) {
+        if (
+            gameStatus !== "playing" ||
+            isChecking
+        ) {
             return;
         }
 
-        const isSelected = selectedWords.includes(word);
+        const isSelected =
+            selectedWordIds.includes(wordId);
 
         setMessage("");
 
         if (isSelected) {
-            setSelectedWords((previousWords) =>
-                previousWords.filter(
-                    (selectedWord) => selectedWord !== word,
-                ),
-            );
-
-            return;
-        }
-
-        if (selectedWords.length < 4) {
-            setSelectedWords((previousWords) => [
-                ...previousWords,
-                word,
-            ]);
-        }
-    }
-
-    function checkSelection() {
-        if (gameStatus !== "playing") {
-            return;
-        }
-
-        if (selectedWords.length !== 4) {
-            setMessage("Zaznacz dokładnie cztery słowa.");
-            return;
-        }
-
-        const matchingCategory = categories.find(
-            (category) =>
-                category.words.every((word) =>
-                    selectedWords.includes(word),
-                ),
-        );
-
-        if (!matchingCategory) {
-            const unsolvedCategories = categories.filter(
-                (category) =>
-                    !solvedCategories.some(
-                        (solvedCategory) =>
-                            solvedCategory.name ===
-                            category.name,
+            setSelectedWordIds(
+                (previousWordIds) =>
+                    previousWordIds.filter(
+                        (selectedWordId) =>
+                            selectedWordId !== wordId,
                     ),
             );
 
-            const isOneAway = unsolvedCategories.some(
-                (category) => {
-                    const matchingWordsCount =
-                        category.words.filter((word) =>
-                            selectedWords.includes(word),
-                        ).length;
+            return;
+        }
 
-                    return matchingWordsCount === 3;
+        if (selectedWordIds.length < 4) {
+            setSelectedWordIds(
+                (previousWordIds) => [
+                    ...previousWordIds,
+                    wordId,
+                ],
+            );
+        }
+    }
+
+    async function revealSolution(): Promise<
+        SolvedCategory[]
+    > {
+        const response = await fetch(
+            "/api/puzzles/reveal",
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    puzzleId: puzzle.id,
+                }),
+            },
+        );
+
+        const responseBody: unknown =
+            await response.json();
+
+        if (!response.ok) {
+            const errorResponse =
+                responseBody as ErrorResponse;
+
+            throw new Error(
+                errorResponse.error ??
+                    "Nie udało się pobrać rozwiązania.",
+            );
+        }
+
+        const revealResponse =
+            responseBody as RevealResponse;
+
+        return revealResponse.categories;
+    }
+
+    async function checkSelection() {
+        if (
+            gameStatus !== "playing" ||
+            isChecking
+        ) {
+            return;
+        }
+
+        if (selectedWordIds.length !== 4) {
+            setMessage(
+                "Zaznacz dokładnie cztery słowa.",
+            );
+
+            return;
+        }
+
+        setIsChecking(true);
+        setMessage("");
+
+        try {
+            const response = await fetch(
+                "/api/puzzles/check",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type":
+                            "application/json",
+                    },
+                    body: JSON.stringify({
+                        puzzleId: puzzle.id,
+                        wordIds: selectedWordIds,
+                    }),
                 },
             );
+
+            const responseBody: unknown =
+                await response.json();
+
+            if (!response.ok) {
+                const errorResponse =
+                    responseBody as ErrorResponse;
+
+                throw new Error(
+                    errorResponse.error ??
+                        "Nie udało się sprawdzić odpowiedzi.",
+                );
+            }
+
+            const checkResult =
+                responseBody as CheckResult;
+
+            if (checkResult.result === "correct") {
+                const newSolvedCategories = [
+                    ...solvedCategories,
+                    checkResult.category,
+                ];
+
+                setSolvedCategories(
+                    newSolvedCategories,
+                );
+
+                setSelectedWordIds([]);
+
+                if (
+                    newSolvedCategories.length ===
+                    puzzle.categoryCount
+                ) {
+                    setGameStatus("won");
+                    setMessage(
+                        "Brawo! Wszystkie grupy zostały rozwiązane.",
+                    );
+
+                    return;
+                }
+
+                setMessage("Dobrze!");
+                return;
+            }
 
             const newMistakes = mistakes + 1;
 
             setMistakes(newMistakes);
-            setSelectedWords([]);
+            setSelectedWordIds([]);
 
             if (newMistakes >= maximumMistakes) {
+                const revealedCategories =
+                    await revealSolution();
+
+                setSolvedCategories(revealedCategories);
                 setGameStatus("lost");
                 setMessage(
-                    "Koniec gry. Oto pozostałe rozwiązania.",
+                    "Koniec gry. Oto poprawne rozwiązanie.",
                 );
 
                 return;
             }
 
-            if (isOneAway) {
+            if (checkResult.result === "one-away") {
                 setMessage("Brakuje jednego!");
                 return;
             }
 
-            setMessage("Te słowa nie tworzą grupy.");
-            return;
-        }
-
-        const newSolvedCategories = [
-            ...solvedCategories,
-            matchingCategory,
-        ];
-
-        setSolvedCategories(newSolvedCategories);
-        setSelectedWords([]);
-
-        if (
-            newSolvedCategories.length ===
-            categories.length
-        ) {
-            setGameStatus("won");
             setMessage(
-                "Brawo! Wszystkie grupy zostały rozwiązane.",
+                "Te słowa nie tworzą grupy.",
             );
+        } catch (error) {
+            const errorMessage =
+                error instanceof Error
+                    ? error.message
+                    : "Wystąpił nieoczekiwany błąd.";
 
-            return;
+            setMessage(errorMessage);
+        } finally {
+            setIsChecking(false);
         }
-
-        setMessage("Dobrze!");
     }
 
     function shuffleWords() {
-        if (gameStatus !== "playing") {
+        if (
+            gameStatus !== "playing" ||
+            isChecking
+        ) {
             return;
         }
 
@@ -182,14 +268,13 @@ export default function Game({ puzzle }: GameProps) {
         );
     }
 
-    const solvedWords = solvedCategories.flatMap(
-        (category) => category.words,
-    );
+    const solvedWordIds =
+        solvedCategories.flatMap((category) =>
+            category.words.map((word) => word.id),
+        );
 
     const displayedCategories = [
-        ...(gameStatus === "lost"
-            ? categories
-            : solvedCategories),
+        ...solvedCategories,
     ].sort(
         (firstCategory, secondCategory) =>
             firstCategory.difficulty -
@@ -200,7 +285,8 @@ export default function Game({ puzzle }: GameProps) {
         gameStatus === "lost"
             ? []
             : boardWords.filter(
-                  (word) => !solvedWords.includes(word),
+                  (word) =>
+                      !solvedWordIds.includes(word.id),
               );
 
     const remainingLives = Math.max(
@@ -223,38 +309,49 @@ export default function Game({ puzzle }: GameProps) {
                 </header>
 
                 <section className="mb-2 space-y-2">
-                    {displayedCategories.map((category) => (
-                        <div
-                            key={category.name}
-                            className={`rounded-md p-5 text-center text-black ${getCategoryColor(
-                                category.difficulty,
-                            )}`}
-                        >
-                            <h2 className="font-bold">
-                                {category.name}
-                            </h2>
+                    {displayedCategories.map(
+                        (category) => (
+                            <div
+                                key={category.name}
+                                className={`rounded-md p-5 text-center text-black ${getCategoryColor(
+                                    category.difficulty,
+                                )}`}
+                            >
+                                <h2 className="font-bold">
+                                    {category.name}
+                                </h2>
 
-                            <p className="mt-1">
-                                {category.words.join(", ")}
-                            </p>
-                        </div>
-                    ))}
+                                <p className="mt-1">
+                                    {category.words
+                                        .map(
+                                            (word) =>
+                                                word.value,
+                                        )
+                                        .join(", ")}
+                                </p>
+                            </div>
+                        ),
+                    )}
                 </section>
 
                 <section className="grid grid-cols-4 gap-2">
                     {remainingWords.map((word) => {
                         const isSelected =
-                            selectedWords.includes(word);
+                            selectedWordIds.includes(
+                                word.id,
+                            );
 
                         return (
                             <button
-                                key={word}
+                                key={word.id}
                                 type="button"
                                 onClick={() =>
-                                    toggleWord(word)
+                                    toggleWord(word.id)
                                 }
                                 disabled={
-                                    gameStatus !== "playing"
+                                    gameStatus !==
+                                        "playing" ||
+                                    isChecking
                                 }
                                 className={`flex min-h-24 items-center justify-center rounded-md p-2 text-center text-sm font-bold transition sm:text-base ${
                                     isSelected
@@ -262,7 +359,7 @@ export default function Game({ puzzle }: GameProps) {
                                         : "bg-stone-200 text-black hover:bg-stone-300"
                                 } disabled:cursor-not-allowed`}
                             >
-                                {word}
+                                {word.value}
                             </button>
                         );
                     })}
@@ -285,7 +382,8 @@ export default function Game({ puzzle }: GameProps) {
                     </div>
 
                     <p>
-                        Zaznaczono: {selectedWords.length} / 4
+                        Zaznaczono:{" "}
+                        {selectedWordIds.length} / 4
                     </p>
 
                     <div className="flex gap-3">
@@ -293,7 +391,9 @@ export default function Game({ puzzle }: GameProps) {
                             type="button"
                             onClick={shuffleWords}
                             disabled={
-                                gameStatus !== "playing"
+                                gameStatus !==
+                                    "playing" ||
+                                isChecking
                             }
                             className="rounded-full border border-white px-6 py-3 font-bold transition hover:bg-white hover:text-stone-900 disabled:cursor-not-allowed disabled:opacity-40"
                         >
@@ -304,12 +404,17 @@ export default function Game({ puzzle }: GameProps) {
                             type="button"
                             onClick={checkSelection}
                             disabled={
-                                selectedWords.length !== 4 ||
-                                gameStatus !== "playing"
+                                selectedWordIds.length !==
+                                    4 ||
+                                gameStatus !==
+                                    "playing" ||
+                                isChecking
                             }
                             className="rounded-full bg-white px-6 py-3 font-bold text-stone-900 transition disabled:cursor-not-allowed disabled:bg-stone-600 disabled:text-stone-400"
                         >
-                            Sprawdź
+                            {isChecking
+                                ? "Sprawdzam..."
+                                : "Sprawdź"}
                         </button>
                     </div>
 
