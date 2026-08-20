@@ -1,7 +1,53 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 
+import { getAdminPuzzles } from "../../lib/admin-puzzles";
 import { createAuthServerClient } from "../../lib/supabase/auth-server";
 import { logout } from "./actions";
+
+type PuzzleStatus =
+    | "draft"
+    | "scheduled"
+    | "archived";
+
+function getStatusLabel(
+    status: PuzzleStatus,
+): string {
+    switch (status) {
+        case "draft":
+            return "Szkic";
+        case "scheduled":
+            return "Zaplanowana";
+        case "archived":
+            return "Archiwalna";
+    }
+}
+
+function getStatusColor(
+    status: PuzzleStatus,
+): string {
+    switch (status) {
+        case "draft":
+            return "bg-stone-500 text-white";
+        case "scheduled":
+            return "bg-green-700 text-green-100";
+        case "archived":
+            return "bg-amber-800 text-amber-100";
+    }
+}
+
+function formatPublicationDate(
+    publicationDate: string | null,
+): string {
+    if (!publicationDate) {
+        return "Brak daty";
+    }
+
+    const [year, month, day] =
+        publicationDate.split("-");
+
+    return `${day}.${month}.${year}`;
+}
 
 export default async function AdminPage() {
     const supabase = await createAuthServerClient();
@@ -15,10 +61,12 @@ export default async function AdminPage() {
         redirect("/admin/login");
     }
 
+    const puzzles = await getAdminPuzzles();
+
     return (
         <main className="min-h-screen bg-stone-800 px-4 py-8 text-white">
             <div className="mx-auto max-w-5xl">
-                <header className="flex items-center justify-between border-b border-stone-600 pb-5">
+                <header className="flex flex-col gap-5 border-b border-stone-600 pb-5 sm:flex-row sm:items-center sm:justify-between">
                     <div>
                         <h1 className="text-3xl font-bold">
                             Panel administratora
@@ -29,26 +77,135 @@ export default async function AdminPage() {
                         </p>
                     </div>
 
-                    <form action= {logout}>
-                        <button
-                            type="submit"
-                            className="rounded-full border border-white px-5 py-2 font-bold transition hover:bg-white hover:text-stone-900"
+                    <div className="flex flex-wrap gap-3">
+                        <Link
+                            href="/"
+                            className="rounded-full border border-stone-500 px-5 py-2 font-bold transition hover:border-white"
                         >
-                            Wyloguj się
-                        </button>
-                    </form>
+                            Przejdź do gry
+                        </Link>
+
+                        <form action={logout}>
+                            <button
+                                type="submit"
+                                className="rounded-full border border-white px-5 py-2 font-bold transition hover:bg-white hover:text-stone-900"
+                            >
+                                Wyloguj się
+                            </button>
+                        </form>
+                    </div>
                 </header>
 
-                <section className="mt-8 rounded-xl bg-stone-700 p-8">
-                    <h2 className="text-2xl font-bold">
-                        Plansze
-                    </h2>
+                <section className="mt-8">
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                            <h2 className="text-2xl font-bold">
+                                Plansze
+                            </h2>
 
-                    <p className="mt-3 text-stone-300">
-                        Tutaj pojawi się lista zapisanych
-                        plansz oraz formularz dodawania
-                        nowych zestawów.
-                    </p>
+                            <p className="mt-1 text-stone-300">
+                                Liczba plansz:{" "}
+                                {puzzles.length}
+                            </p>
+                        </div>
+
+                        <button
+                            type="button"
+                            disabled
+                            title="Formularz dodawania planszy powstanie w następnym kroku."
+                            className="cursor-not-allowed rounded-full bg-stone-600 px-6 py-3 font-bold text-stone-400"
+                        >
+                            Dodaj planszę
+                        </button>
+                    </div>
+
+                    {puzzles.length === 0 ? (
+                        <div className="mt-6 rounded-xl bg-stone-700 p-8 text-center">
+                            <h3 className="text-xl font-bold">
+                                Brak plansz
+                            </h3>
+
+                            <p className="mt-2 text-stone-300">
+                                W bazie nie ma jeszcze żadnej
+                                planszy.
+                            </p>
+                        </div>
+                    ) : (
+                        <div className="mt-6 space-y-4">
+                            {puzzles.map((puzzle) => (
+                                <article
+                                    key={puzzle.id}
+                                    className="rounded-xl bg-stone-700 p-5 shadow-lg"
+                                >
+                                    <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                                        <div>
+                                            <div className="flex flex-wrap items-center gap-3">
+                                                <h3 className="text-xl font-bold">
+                                                    {
+                                                        puzzle.title
+                                                    }
+                                                </h3>
+
+                                                <span
+                                                    className={`rounded-full px-3 py-1 text-sm font-bold ${getStatusColor(
+                                                        puzzle.status,
+                                                    )}`}
+                                                >
+                                                    {getStatusLabel(
+                                                        puzzle.status,
+                                                    )}
+                                                </span>
+                                            </div>
+
+                                            <p className="mt-2 text-stone-300">
+                                                Data publikacji:{" "}
+                                                {formatPublicationDate(
+                                                    puzzle.publicationDate,
+                                                )}
+                                            </p>
+                                        </div>
+
+                                        <div className="flex gap-6 text-sm">
+                                            <div className="text-center">
+                                                <p className="text-2xl font-bold">
+                                                    {
+                                                        puzzle.categoryCount
+                                                    }
+                                                </p>
+
+                                                <p className="text-stone-300">
+                                                    kategorie
+                                                </p>
+                                            </div>
+
+                                            <div className="text-center">
+                                                <p className="text-2xl font-bold">
+                                                    {
+                                                        puzzle.wordCount
+                                                    }
+                                                </p>
+
+                                                <p className="text-stone-300">
+                                                    słowa
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="mt-5 border-t border-stone-600 pt-4">
+                                        <button
+                                            type="button"
+                                            disabled
+                                            title="Edycja planszy powstanie później."
+                                            className="cursor-not-allowed rounded-full border border-stone-500 px-5 py-2 font-bold text-stone-400"
+                                        >
+                                            Edytuj
+                                        </button>
+                                    </div>
+                                </article>
+                            ))}
+                        </div>
+                    )}
                 </section>
             </div>
         </main>
