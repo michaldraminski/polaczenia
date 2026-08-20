@@ -195,7 +195,7 @@ export default async function AdminPage() {
                                             href={`/admin/puzzles/${puzzle.id}`}
                                             className="rounded-full border border-white px-5 py-2 font-bold transition hover:bg-white hover:text-stone-900"
                                         >
-                                            Podgląd
+                                            Edytuj
                                         </Link>
                                     </div>
                                 </article>

@@ -3,11 +3,23 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-type PuzzleStatus = "draft" | "scheduled";
+type PuzzleStatus =
+    | "draft"
+    | "scheduled"
+    | "archived";
+
 
 type CategoryForm = {
     name: string;
     words: string[];
+};
+
+type PuzzleFormProps = {
+    puzzleId?: number;
+    initialTitle?: string;
+    initialPublicationDate?: string | null;
+    initialStatus?: PuzzleStatus;
+    initialCategories?: CategoryForm[];
 };
 
 type ErrorResponse = {
@@ -35,15 +47,21 @@ function createEmptyCategories(): CategoryForm[] {
     }));
 }
 
-export default function PuzzleForm() {
+export default function PuzzleForm({
+    puzzleId,
+    initialTitle = "",
+    initialPublicationDate = "",
+    initialStatus = "draft",
+    initialCategories,
+}: PuzzleFormProps) {
     const router = useRouter();
-    const [title, setTitle] = useState("");
-    const [publicationDate, setPublicationDate] =
-        useState("");
-    const [status, setStatus] =
-        useState<PuzzleStatus>("draft");
+    const [title, setTitle] = useState(initialTitle);
+    const [publicationDate, setPublicationDate] = useState(initialPublicationDate ?? "");
+    const [status, setStatus] = useState<PuzzleStatus>(initialStatus);
     const [categories, setCategories] = useState(
-        createEmptyCategories,
+        () =>
+            initialCategories ??
+            createEmptyCategories(),
     );
     const [message, setMessage] = useState("");
     const [isSaving, setIsSaving] =
@@ -167,10 +185,12 @@ export default function PuzzleForm() {
         setMessage("");
 
         try {
-            const response = await fetch(
-                "/api/admin/puzzles",
-                {
-                    method: "POST",
+            const endpoint = puzzleId
+                ? `/api/admin/puzzles/${puzzleId}`
+                : "/api/admin/puzzles";
+
+            const response = await fetch(endpoint, {
+                method: puzzleId ? "PATCH" : "POST",
                     headers: {
                         "Content-Type":
                             "application/json",
@@ -274,6 +294,11 @@ export default function PuzzleForm() {
                             <option value="scheduled">
                                 Zaplanowana
                             </option>
+                            {puzzleId && (
+                                <option value="archived">
+                                    Archiwalna
+                                </option>
+                            )}
                         </select>
                     </div>
 
@@ -399,7 +424,7 @@ export default function PuzzleForm() {
                                                                 .value,
                                                         )
                                                     }
-                                                    className="w-full rounded-md border border-stone-500 bg-stone-800 px-3 py-3 text-center font-bold uppercase outline-none focus:border-white"
+                                                    className="w-full rounded-md border border-stone-500 bg-stone-800 px-3 py-3 text-center font-bold outline-none focus:border-white"
                                                 />
                                             </div>
                                         ),
@@ -432,6 +457,8 @@ export default function PuzzleForm() {
                 >
                     {isSaving
                         ? "Zapisuję..."
+                        : puzzleId
+                        ? "Zapisz zmiany"
                         : "Zapisz planszę"}
                 </button>
             </div>
