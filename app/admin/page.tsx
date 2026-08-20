@@ -109,14 +109,12 @@ export default async function AdminPage() {
                             </p>
                         </div>
 
-                        <button
-                            type="button"
-                            disabled
-                            title="Formularz dodawania planszy powstanie w następnym kroku."
-                            className="cursor-not-allowed rounded-full bg-stone-600 px-6 py-3 font-bold text-stone-400"
+                        <Link
+                            href="/admin/puzzles/new"
+                            className="rounded-full bg-white px-6 py-3 font-bold text-stone-900 transition hover:bg-stone-200"
                         >
                             Dodaj planszę
-                        </button>
+                        </Link>
                     </div>
 
                     {puzzles.length === 0 ? (
