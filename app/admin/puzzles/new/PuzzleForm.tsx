@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 type PuzzleStatus = "draft" | "scheduled";
@@ -7,6 +8,10 @@ type PuzzleStatus = "draft" | "scheduled";
 type CategoryForm = {
     name: string;
     words: string[];
+};
+
+type ErrorResponse = {
+    error?: string;
 };
 
 const categoryColors = [
@@ -31,6 +36,7 @@ function createEmptyCategories(): CategoryForm[] {
 }
 
 export default function PuzzleForm() {
+    const router = useRouter();
     const [title, setTitle] = useState("");
     const [publicationDate, setPublicationDate] =
         useState("");
@@ -40,6 +46,8 @@ export default function PuzzleForm() {
         createEmptyCategories,
     );
     const [message, setMessage] = useState("");
+    const [isSaving, setIsSaving] =
+    useState(false);
 
     function updateCategoryName(
         categoryIndex: number,
@@ -139,10 +147,14 @@ export default function PuzzleForm() {
         return null;
     }
 
-    function handleSubmit(
+    async function handleSubmit(
         event: React.FormEvent<HTMLFormElement>,
     ) {
         event.preventDefault();
+
+        if (isSaving) {
+            return;
+        }
 
         const validationError = validateForm();
 
@@ -151,9 +163,52 @@ export default function PuzzleForm() {
             return;
         }
 
-        setMessage(
-            "Formularz jest poprawny. Zapis do bazy dodamy w następnym kroku.",
-        );
+        setIsSaving(true);
+        setMessage("");
+
+        try {
+            const response = await fetch(
+                "/api/admin/puzzles",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type":
+                            "application/json",
+                    },
+                    body: JSON.stringify({
+                        title,
+                        publicationDate:
+                            publicationDate || null,
+                        status,
+                        categories,
+                    }),
+                },
+            );
+
+            const responseBody: unknown =
+                await response.json();
+
+            if (!response.ok) {
+                const errorResponse =
+                    responseBody as ErrorResponse;
+
+                throw new Error(
+                    errorResponse.error ??
+                        "Nie udało się zapisać planszy.",
+                );
+            }
+
+            router.push("/admin");
+            router.refresh();
+        } catch (error) {
+            setMessage(
+                error instanceof Error
+                    ? error.message
+                    : "Wystąpił nieoczekiwany błąd.",
+            );
+        } finally {
+            setIsSaving(false);
+        }
     }
 
     const completedWordCount = categories
@@ -357,15 +412,7 @@ export default function PuzzleForm() {
             </section>
 
             {message && (
-                <p
-                    className={`rounded-md p-4 text-center font-medium ${
-                        message.startsWith(
-                            "Formularz jest poprawny",
-                        )
-                            ? "bg-green-950 text-green-200"
-                            : "bg-red-950 text-red-200"
-                    }`}
-                >
+                <p className="rounded-md bg-red-950 p-4 text-center font-medium text-red-200" >
                     {message}
                 </p>
             )}
@@ -380,9 +427,12 @@ export default function PuzzleForm() {
 
                 <button
                     type="submit"
-                    className="rounded-full bg-white px-6 py-3 font-bold text-stone-900 transition hover:bg-stone-200"
+                    disabled={isSaving}
+                    className="rounded-full bg-white px-6 py-3 font-bold text-stone-900 transition hover:bg-stone-200 disabled:cursor-not-allowed disabled:bg-stone-500 disabled:text-stone-300"
                 >
-                    Sprawdź formularz
+                    {isSaving
+                        ? "Zapisuję..."
+                        : "Zapisz planszę"}
                 </button>
             </div>
         </form>
