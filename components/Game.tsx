@@ -1,8 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
-import { shuffle } from "../lib/shuffle";
+import {
+    shuffle,
+    shuffleWithSeed,
+} from "../lib/shuffle";
 import type {
     CheckResult,
     Difficulty,
@@ -13,14 +16,6 @@ import type {
 
 type GameProps = {
     puzzle: PublicPuzzle;
-};
-
-type ErrorResponse = {
-    error?: string;
-};
-
-type RevealResponse = {
-    categories: SolvedCategory[];
 };
 
 const maximumMistakes = 4;
@@ -41,8 +36,8 @@ function getCategoryColor(
 }
 
 export default function Game({ puzzle }: GameProps) {
-    const [boardWords, setBoardWords] = useState(
-        puzzle.words,
+    const [boardWords, setBoardWords] = useState(() =>
+        shuffleWithSeed(puzzle.words, puzzle.id),
     );
 
     const [
@@ -63,10 +58,6 @@ export default function Game({ puzzle }: GameProps) {
 
     const [isChecking, setIsChecking] =
         useState(false);
-
-    useEffect(() => {
-        setBoardWords(shuffle(puzzle.words));
-    }, [puzzle]);
 
     function toggleWord(wordId: number) {
         if (
@@ -103,39 +94,69 @@ export default function Game({ puzzle }: GameProps) {
         }
     }
 
-    async function revealSolution(): Promise<
-        SolvedCategory[]
-    > {
-        const response = await fetch(
-            "/api/puzzles/reveal",
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    puzzleId: puzzle.id,
-                }),
-            },
-        );
+    function revealSolution(): SolvedCategory[] {
+        return puzzle.categories.map((category) => ({
+            name: category.name,
+            difficulty: category.difficulty,
+            words: category.wordIds.map((wordId) =>
+                puzzle.words.find(
+                    (word) => word.id === wordId,
+                )!,
+            ),
+        }));
+    }
 
-        const responseBody: unknown =
-            await response.json();
+    function checkSelectionLocally(): CheckResult {
+        const categoryCounts = new Map<number, number>();
 
-        if (!response.ok) {
-            const errorResponse =
-                responseBody as ErrorResponse;
+        for (const wordId of selectedWordIds) {
+            const word = puzzle.words.find(
+                (currentWord) => currentWord.id === wordId,
+            );
 
-            throw new Error(
-                errorResponse.error ??
-                    "Nie udało się pobrać rozwiązania.",
+            if (!word) {
+                return { result: "incorrect" };
+            }
+
+            categoryCounts.set(
+                word.categoryId,
+                (categoryCounts.get(word.categoryId) ?? 0) + 1,
             );
         }
 
-        const revealResponse =
-            responseBody as RevealResponse;
+        const matchingCategoryId = [
+            ...categoryCounts.entries(),
+        ].find(([, count]) => count === 4)?.[0];
 
-        return revealResponse.categories;
+        if (matchingCategoryId !== undefined) {
+            const category = puzzle.categories.find(
+                (currentCategory) =>
+                    currentCategory.id === matchingCategoryId,
+            );
+
+            if (!category) {
+                return { result: "incorrect" };
+            }
+
+            return {
+                result: "correct",
+                category: {
+                    name: category.name,
+                    difficulty: category.difficulty,
+                    words: category.wordIds.map((wordId) =>
+                        puzzle.words.find(
+                            (word) => word.id === wordId,
+                        )!,
+                    ),
+                },
+            };
+        }
+
+        return [
+            ...categoryCounts.values(),
+        ].some((count) => count === 3)
+            ? { result: "one-away" }
+            : { result: "incorrect" };
     }
 
     async function checkSelection() {
@@ -158,36 +179,7 @@ export default function Game({ puzzle }: GameProps) {
         setMessage("");
 
         try {
-            const response = await fetch(
-                "/api/puzzles/check",
-                {
-                    method: "POST",
-                    headers: {
-                        "Content-Type":
-                            "application/json",
-                    },
-                    body: JSON.stringify({
-                        puzzleId: puzzle.id,
-                        wordIds: selectedWordIds,
-                    }),
-                },
-            );
-
-            const responseBody: unknown =
-                await response.json();
-
-            if (!response.ok) {
-                const errorResponse =
-                    responseBody as ErrorResponse;
-
-                throw new Error(
-                    errorResponse.error ??
-                        "Nie udało się sprawdzić odpowiedzi.",
-                );
-            }
-
-            const checkResult =
-                responseBody as CheckResult;
+            const checkResult = checkSelectionLocally();
 
             if (checkResult.result === "correct") {
                 const newSolvedCategories = [
@@ -224,7 +216,7 @@ export default function Game({ puzzle }: GameProps) {
 
             if (newMistakes >= maximumMistakes) {
                 const revealedCategories =
-                    await revealSolution();
+                    revealSolution();
 
                 setSolvedCategories(revealedCategories);
                 setGameStatus("lost");

@@ -2,16 +2,29 @@ import "server-only";
 
 import { getCurrentDateInPoland } from "./date";
 import { createServerSupabaseClient } from "./supabase/server";
-import type { PublicPuzzle, Word } from "../types/game";
+import type {
+    Difficulty,
+    PublicPuzzle,
+    PublicWord,
+} from "../types/game";
 
 type CategoryRow = {
     id: number;
+    name: string;
+    difficulty: number;
 };
 
 type WordRow = {
     id: number;
     value: string;
+    category_id: number;
 };
+
+function isDifficulty(
+    value: number,
+): value is Difficulty {
+    return value >= 1 && value <= 4;
+}
 
 export async function getTodaysPuzzle(): Promise<PublicPuzzle | null> {
     const supabase = createServerSupabaseClient();
@@ -42,7 +55,7 @@ export async function getTodaysPuzzle(): Promise<PublicPuzzle | null> {
         error: categoriesError,
     } = await supabase
         .from("categories")
-        .select("id")
+        .select("id, name, difficulty")
         .eq("puzzle_id", puzzleRow.id);
 
     if (categoriesError) {
@@ -67,7 +80,7 @@ export async function getTodaysPuzzle(): Promise<PublicPuzzle | null> {
         error: wordsError,
     } = await supabase
         .from("words")
-        .select("id, value")
+        .select("id, value, category_id")
         .in("category_id", categoryIds);
 
     if (wordsError) {
@@ -76,16 +89,40 @@ export async function getTodaysPuzzle(): Promise<PublicPuzzle | null> {
         );
     }
 
-    const words: Word[] = (wordRows as WordRow[]).map(
+    const words: PublicWord[] = (wordRows as WordRow[]).map(
         (wordRow) => ({
             id: wordRow.id,
             value: wordRow.value,
+            categoryId: wordRow.category_id,
         }),
+    );
+
+    const publicCategories = categories.map(
+        (category) => {
+            if (!isDifficulty(category.difficulty)) {
+                throw new Error(
+                    `Niepoprawna trudność kategorii: ${category.difficulty}`,
+                );
+            }
+
+            return {
+                id: category.id,
+                name: category.name,
+                difficulty: category.difficulty,
+                wordIds: words
+                    .filter(
+                        (word) =>
+                            word.categoryId === category.id,
+                    )
+                    .map((word) => word.id),
+            };
+        },
     );
 
     return {
         id: puzzleRow.id,
         words,
+        categories: publicCategories,
         categoryCount: categories.length,
     };
 }

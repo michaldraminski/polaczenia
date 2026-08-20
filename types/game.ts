@@ -19,8 +19,20 @@ export type Puzzle = {
 
 export type PublicPuzzle = {
     id: number;
-    words: Word[];
+    words: PublicWord[];
+    categories: PublicCategory[];
     categoryCount: number;
+};
+
+export type PublicWord = Word & {
+    categoryId: number;
+};
+
+export type PublicCategory = {
+    id: number;
+    name: string;
+    difficulty: Difficulty;
+    wordIds: number[];
 };
 
 export type SolvedCategory = {
