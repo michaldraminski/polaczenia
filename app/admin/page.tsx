@@ -191,14 +191,12 @@ export default async function AdminPage() {
                                     </div>
 
                                     <div className="mt-5 border-t border-stone-600 pt-4">
-                                        <button
-                                            type="button"
-                                            disabled
-                                            title="Edycja planszy powstanie później."
-                                            className="cursor-not-allowed rounded-full border border-stone-500 px-5 py-2 font-bold text-stone-400"
+                                        <Link
+                                            href={`/admin/puzzles/${puzzle.id}`}
+                                            className="rounded-full border border-white px-5 py-2 font-bold transition hover:bg-white hover:text-stone-900"
                                         >
-                                            Edytuj
-                                        </button>
+                                            Podgląd
+                                        </Link>
                                     </div>
                                 </article>
                             ))}
