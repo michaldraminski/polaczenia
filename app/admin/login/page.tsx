@@ -80,7 +80,7 @@ export default async function LoginPage({
 
                     <button
                         type="submit"
-                        className="w-full rounded-full bg-white px-6 py-3 font-bold text-stone-900 transition hover:bg-stone-200"
+                        className="mt-4 w-full rounded-full bg-white px-6 py-3 font-bold text-stone-900 transition hover:bg-stone-200"
                     >
                         Zaloguj się
                     </button>

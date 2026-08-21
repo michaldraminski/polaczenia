@@ -34,13 +34,13 @@ function getCategoryColor(
 ): string {
     switch (difficulty) {
         case 1:
-            return "bg-yellow-300";
+            return "bg-amber-200";
         case 2:
-            return "bg-green-400";
+            return "bg-emerald-300";
         case 3:
-            return "bg-blue-400";
+            return "bg-sky-300";
         case 4:
-            return "bg-purple-400";
+            return "bg-violet-300";
     }
 }
 
@@ -499,14 +499,14 @@ export default function Game({ puzzle }: GameProps) {
     );
 
     return (
-        <main className="min-h-screen bg-stone-800 px-4 py-8 text-white">
-            <div className="mx-auto max-w-3xl">
-                <header className="mb-8 text-center">
-                    <h1 className="text-4xl font-bold">
+        <main className="min-h-screen overflow-x-hidden bg-stone-800 px-2 py-5 text-white sm:px-4 sm:py-8">
+            <div className="mx-auto w-full max-w-3xl">
+                <header className="mb-5 text-center sm:mb-8">
+                    <h1 className="text-3xl font-bold sm:text-4xl">
                         Połączenia
                     </h1>
 
-                    <p className="mt-3 text-lg">
+                    <p className="mt-2 text-sm text-stone-200 sm:mt-3 sm:text-lg">
                         Znajdź cztery grupy po cztery
                         powiązane słowa.
                     </p>
@@ -517,28 +517,30 @@ export default function Game({ puzzle }: GameProps) {
                         (category) => (
                             <div
                                 key={category.name}
-                                className={`rounded-md p-5 text-center text-black ${getCategoryColor(
+                                className={`min-w-0 rounded-lg px-3 py-4 text-center text-stone-900 sm:p-5 ${getCategoryColor(
                                     category.difficulty,
                                 )}`}
                             >
-                                <h2 className="font-bold">
+                                <h2 className="break-words text-sm font-bold leading-tight sm:text-base">
                                     {category.name}
                                 </h2>
 
-                                <p className="mt-1">
-                                    {category.words
-                                        .map(
-                                            (word) =>
-                                                word.value,
-                                        )
-                                        .join(", ")}
-                                </p>
+                                <div className="mt-3 grid grid-cols-2 gap-1.5 sm:grid-cols-4 sm:gap-2">
+                                    {category.words.map((word) => (
+                                        <span
+                                            key={word.id}
+                                            className="min-w-0 break-words rounded-md bg-white/25 px-2 py-2 text-center text-xs font-bold leading-tight sm:text-sm"
+                                        >
+                                            {word.value}
+                                        </span>
+                                    ))}
+                                </div>
                             </div>
                         ),
                     )}
                 </section>
 
-                <section className="grid grid-cols-4 gap-2">
+                <section className="grid min-w-0 grid-cols-4 gap-1.5 sm:gap-2">
                     {remainingWords.map((word) => {
                         const isSelected =
                             selectedWordIds.includes(
@@ -557,10 +559,10 @@ export default function Game({ puzzle }: GameProps) {
                                         "playing" ||
                                     isChecking
                                 }
-                                className={`flex min-h-24 items-center justify-center rounded-md p-2 text-center text-sm font-bold transition sm:text-base ${
+                                className={`flex min-h-20 min-w-0 items-center justify-center overflow-hidden rounded-md px-1 py-2 text-center text-[clamp(0.58rem,2.7vw,1rem)] font-bold leading-tight transition sm:min-h-24 sm:p-2 ${
                                     isSelected
                                         ? "bg-stone-500 text-white"
-                                        : "bg-stone-200 text-black hover:bg-stone-300"
+                                        : "bg-stone-200 text-stone-900 hover:bg-stone-300"
                                 } disabled:cursor-not-allowed`}
                             >
                                 {word.value}
@@ -570,7 +572,7 @@ export default function Game({ puzzle }: GameProps) {
                 </section>
 
                 <div className="mt-5 flex flex-col items-center gap-3">
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center justify-center gap-2 text-sm sm:text-base">
                         <span className="mr-1">
                             Pozostałe próby:
                         </span>
@@ -599,7 +601,7 @@ export default function Game({ puzzle }: GameProps) {
                                     "playing" ||
                                 isChecking
                             }
-                            className="rounded-full border border-white px-6 py-3 font-bold transition hover:bg-white hover:text-stone-900 disabled:cursor-not-allowed disabled:opacity-40"
+                            className="min-w-0 flex-1 rounded-full border border-white px-3 py-3 text-sm font-bold transition hover:bg-white hover:text-stone-900 disabled:cursor-not-allowed disabled:opacity-40 sm:px-6 sm:text-base"
                         >
                             Pomieszaj
                         </button>
@@ -614,7 +616,7 @@ export default function Game({ puzzle }: GameProps) {
                                     "playing" ||
                                 isChecking
                             }
-                            className="rounded-full bg-white px-6 py-3 font-bold text-stone-900 transition disabled:cursor-not-allowed disabled:bg-stone-600 disabled:text-stone-400"
+                            className="min-w-0 flex-1 rounded-full bg-white px-3 py-3 text-sm font-bold text-stone-900 transition hover:bg-stone-200 disabled:cursor-not-allowed disabled:bg-stone-600 disabled:text-stone-400 sm:px-6 sm:text-base"
                         >
                             {isChecking
                                 ? "Sprawdzam..."
@@ -627,7 +629,7 @@ export default function Game({ puzzle }: GameProps) {
                             <button
                                 type="button"
                                 onClick={showSolution}
-                                className="rounded-full border border-red-300 px-6 py-3 font-bold text-red-200 transition hover:bg-red-300 hover:text-stone-900"
+                                className="w-full max-w-sm rounded-full border border-red-300 px-4 py-3 text-sm font-bold text-red-200 transition hover:bg-red-300 hover:text-stone-900 sm:px-6 sm:text-base"
                             >
                                 Pokaż rozwiązanie
                             </button>
