@@ -1,36 +1,166 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Połączenia
 
-## Getting Started
+Polska gra słowna inspirowana formatem Connections.
 
-First, run the development server:
+Zadaniem gracza jest podzielenie 16 słów na 4 kategorie po 4 powiązane elementy. Gracz ma cztery próby na znalezienie wszystkich kategorii.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## Demo
+
+Aplikacja: **https://polaczenia.vercel.app/**
+
+## Funkcje
+
+- codzienna plansza 4 × 4,
+- losowa kolejność słów,
+- zaznaczanie i sprawdzanie grup,
+- cztery próby,
+- podpowiedź „Brakuje jednego!”,
+- poziomy trudności kategorii,
+- pokazanie rozwiązania po przegranej,
+- panel administratora,
+- tworzenie i edycja plansz,
+- planowanie plansz na wybrane dni,
+- archiwizowanie plansz,
+- logowanie administratora.
+
+## Technologie
+
+- Next.js
+- React
+- TypeScript
+- Tailwind CSS
+- Supabase
+  - PostgreSQL
+  - Auth
+  - Data API
+- Vercel
+
+## Uruchomienie lokalne
+
+### Wymagania
+
+- Node.js LTS
+- npm
+- Git
+
+### Instalacja
+
+```powershell
+git clone WSTAW_TUTAJ_ADRES_REPOZYTORIUM
+cd polaczenia
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Utwórz w głównym katalogu projektu plik `.env.local`:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```env
+SUPABASE_URL=https://PROJEKT.supabase.co
+SUPABASE_SECRET_KEY=sb_secret_...
+NEXT_PUBLIC_SUPABASE_URL=https://PROJEKT.supabase.co
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Następnie uruchom aplikację:
 
-## Learn More
+```powershell
+npm run dev
+```
 
-To learn more about Next.js, take a look at the following resources:
+Aplikacja będzie dostępna pod adresem:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```text
+http://localhost:3000
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Panel administratora:
 
-## Deploy on Vercel
+```text
+http://localhost:3000/admin
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Build produkcyjny
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```powershell
+npm run build
+npm run start
+```
+
+## Struktura projektu
+
+```text
+app/
+├── admin/              panel administratora
+├── api/                endpointy backendowe
+└── page.tsx            strona główna gry
+
+components/
+└── Game.tsx            interfejs i logika rozgrywki
+
+lib/
+├── supabase/           konfiguracja klientów Supabase
+├── puzzles.ts          pobieranie bieżącej planszy
+└── admin-puzzles.ts    obsługa plansz w panelu administratora
+
+types/
+└── game.ts             typy TypeScript
+
+supabase/
+└── migrations/         migracje bazy danych
+```
+
+## Model danych
+
+```text
+puzzles
+    1:N
+categories
+    1:N
+words
+```
+
+Jedna plansza zawiera cztery kategorie, a każda kategoria zawiera cztery słowa.
+
+Plansza jest dostępna publicznie, jeśli:
+
+- ma status `scheduled`,
+- jej data publikacji odpowiada bieżącej dacie w strefie `Europe/Warsaw`.
+
+## Statusy plansz
+
+- `draft` — szkic,
+- `scheduled` — plansza zaplanowana do publikacji,
+- `archived` — plansza archiwalna.
+
+## Bezpieczeństwo
+
+Plik `.env.local` nie może zostać dodany do repozytorium.
+
+W szczególności nie należy udostępniać wartości:
+
+```text
+SUPABASE_SECRET_KEY
+```
+
+Publiczna rejestracja użytkowników jest wyłączona. Konta administratorów są tworzone ręcznie w Supabase Auth.
+
+## Wdrożenie
+
+Aplikacja jest przygotowana do wdrożenia na Vercel.
+
+Po połączeniu repozytorium z Vercel należy skonfigurować następujące zmienne środowiskowe:
+
+```text
+SUPABASE_URL
+SUPABASE_SECRET_KEY
+NEXT_PUBLIC_SUPABASE_URL
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+```
+
+## Planowane funkcje
+
+- dopracowany ekran końcowy,
+- kopiowanie wyniku,
+- archiwum poprzednich plansz,
+- możliwość przesyłania sugestii przez użytkowników,
+- usprawnienia dostępności,
+- dalsze poprawki wyglądu na urządzeniach mobilnych.
