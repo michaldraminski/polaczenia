@@ -143,18 +143,6 @@ SUPABASE_SECRET_KEY
 
 Publiczna rejestracja użytkowników jest wyłączona. Konta administratorów są tworzone ręcznie w Supabase Auth.
 
-## Wdrożenie
-
-Aplikacja jest przygotowana do wdrożenia na Vercel.
-
-Po połączeniu repozytorium z Vercel należy skonfigurować następujące zmienne środowiskowe:
-
-```text
-SUPABASE_URL
-SUPABASE_SECRET_KEY
-NEXT_PUBLIC_SUPABASE_URL
-NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
-```
 
 ## Planowane funkcje
 
