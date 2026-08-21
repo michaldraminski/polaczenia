@@ -19,6 +19,7 @@ export type Puzzle = {
 
 export type PublicPuzzle = {
     id: number;
+    updatedAt: string;
     words: PublicWord[];
     categories: PublicCategory[];
     categoryCount: number;

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import {
     shuffle,
@@ -18,6 +18,14 @@ type GameProps = {
     puzzle: PublicPuzzle;
 };
 
+type SavedGame = {
+    boardWordIds: number[];
+    selectedWordIds: number[];
+    solvedCategories: SolvedCategory[];
+    mistakes: number;
+    gameStatus: GameStatus;
+};
+
 const maximumMistakes = 4;
 
 function getCategoryColor(
@@ -33,6 +41,45 @@ function getCategoryColor(
         case 4:
             return "bg-purple-400";
     }
+}
+
+function isGameStatus(
+    value: unknown,
+): value is GameStatus {
+    return (
+        value === "playing" ||
+        value === "won" ||
+        value === "lost"
+    );
+}
+
+function isSavedGame(
+    value: unknown,
+): value is SavedGame {
+    if (
+        typeof value !== "object" ||
+        value === null
+    ) {
+        return false;
+    }
+
+    const savedGame =
+        value as Partial<SavedGame>;
+
+    return (
+        Array.isArray(savedGame.boardWordIds) &&
+        savedGame.boardWordIds.every(
+            Number.isInteger,
+        ) &&
+        Array.isArray(savedGame.selectedWordIds) &&
+        savedGame.selectedWordIds.every(
+            Number.isInteger,
+        ) &&
+        Array.isArray(savedGame.solvedCategories) &&
+        typeof savedGame.mistakes === "number" &&
+        Number.isInteger(savedGame.mistakes) &&
+        isGameStatus(savedGame.gameStatus)
+    );
 }
 
 export default function Game({ puzzle }: GameProps) {
@@ -58,6 +105,144 @@ export default function Game({ puzzle }: GameProps) {
 
     const [isChecking, setIsChecking] =
         useState(false);
+
+    const [
+        isSavedGameLoaded,
+        setIsSavedGameLoaded,
+    ] = useState(false);
+
+    const storageKey =
+        `polaczenia:game:${puzzle.id}:${puzzle.updatedAt}`;
+
+    useEffect(() => {
+        const initialBoardWords =
+            shuffleWithSeed(puzzle.words, puzzle.id);
+
+        try {
+            const savedValue =
+                localStorage.getItem(storageKey);
+
+            if (!savedValue) {
+                setBoardWords(initialBoardWords);
+                return;
+            }
+
+            const parsedValue: unknown =
+                JSON.parse(savedValue);
+
+            if (!isSavedGame(parsedValue)) {
+                localStorage.removeItem(storageKey);
+                setBoardWords(initialBoardWords);
+                return;
+            }
+
+            const availableWordIds = new Set(
+                puzzle.words.map((word) => word.id),
+            );
+
+            const restoredBoardWords =
+                parsedValue.boardWordIds
+                    .map((wordId) =>
+                        puzzle.words.find(
+                            (word) => word.id === wordId,
+                        ),
+                    )
+                    .filter(
+                        (
+                            word,
+                        ): word is PublicPuzzle["words"][number] =>
+                            word !== undefined,
+                    );
+
+            const missingWords = puzzle.words.filter(
+                (word) =>
+                    !parsedValue.boardWordIds.includes(
+                        word.id,
+                    ),
+            );
+
+            setBoardWords([
+                ...restoredBoardWords,
+                ...missingWords,
+            ]);
+
+            setSelectedWordIds(
+                parsedValue.selectedWordIds
+                    .filter((wordId) =>
+                        availableWordIds.has(wordId),
+                    )
+                    .slice(0, 4),
+            );
+
+            const validSolvedCategories =
+                parsedValue.solvedCategories.filter(
+                    (category) =>
+                        Array.isArray(category.words) &&
+                        category.words.every((word) =>
+                            availableWordIds.has(word.id),
+                        ),
+                );
+
+            setSolvedCategories(
+                validSolvedCategories,
+            );
+
+            setMistakes(
+                Math.min(
+                    Math.max(parsedValue.mistakes, 0),
+                    maximumMistakes,
+                ),
+            );
+
+            setGameStatus(parsedValue.gameStatus);
+
+            if (parsedValue.gameStatus === "won") {
+                setMessage(
+                    "Brawo! Wszystkie grupy zostały rozwiązane.",
+                );
+            } else if (
+                parsedValue.gameStatus === "lost"
+            ) {
+                setMessage(
+                    "Koniec gry. Oto poprawne rozwiązanie.",
+                );
+            }
+        } catch {
+            localStorage.removeItem(storageKey);
+            setBoardWords(initialBoardWords);
+        } finally {
+            setIsSavedGameLoaded(true);
+        }
+    }, [puzzle, storageKey]);
+
+    useEffect(() => {
+        if (!isSavedGameLoaded) {
+            return;
+        }
+
+        const savedGame: SavedGame = {
+            boardWordIds: boardWords.map(
+                (word) => word.id,
+            ),
+            selectedWordIds,
+            solvedCategories,
+            mistakes,
+            gameStatus,
+        };
+
+        localStorage.setItem(
+            storageKey,
+            JSON.stringify(savedGame),
+        );
+    }, [
+        boardWords,
+        selectedWordIds,
+        solvedCategories,
+        mistakes,
+        gameStatus,
+        isSavedGameLoaded,
+        storageKey,
+    ]);
 
     function toggleWord(wordId: number) {
         if (

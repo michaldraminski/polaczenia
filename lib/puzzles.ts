@@ -8,6 +8,11 @@ import type {
     PublicWord,
 } from "../types/game";
 
+type PuzzleRow = {
+    id: number;
+    updated_at: string;
+};
+
 type CategoryRow = {
     id: number;
     name: string;
@@ -35,7 +40,7 @@ export async function getTodaysPuzzle(): Promise<PublicPuzzle | null> {
         error: puzzleError,
     } = await supabase
         .from("puzzles")
-        .select("id")
+        .select("id, updated_at")
         .eq("publication_date", currentDate)
         .eq("status", "scheduled")
         .maybeSingle();
@@ -49,6 +54,7 @@ export async function getTodaysPuzzle(): Promise<PublicPuzzle | null> {
     if (!puzzleRow) {
         return null;
     }
+    const puzzle = puzzleRow as PuzzleRow;
 
     const {
         data: categoryRows,
@@ -56,7 +62,7 @@ export async function getTodaysPuzzle(): Promise<PublicPuzzle | null> {
     } = await supabase
         .from("categories")
         .select("id, name, difficulty")
-        .eq("puzzle_id", puzzleRow.id);
+        .eq("puzzle_id", puzzle.id);
 
     if (categoriesError) {
         throw new Error(
@@ -120,7 +126,8 @@ export async function getTodaysPuzzle(): Promise<PublicPuzzle | null> {
     );
 
     return {
-        id: puzzleRow.id,
+        id: puzzle.id,
+        updatedAt: puzzle.updated_at,
         words,
         categories: publicCategories,
         categoryCount: categories.length,
