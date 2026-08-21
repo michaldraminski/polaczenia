@@ -24,6 +24,7 @@ type SavedGame = {
     solvedCategories: SolvedCategory[];
     mistakes: number;
     gameStatus: GameStatus;
+    isSolutionRevealed: boolean;
 };
 
 const maximumMistakes = 4;
@@ -78,7 +79,9 @@ function isSavedGame(
         Array.isArray(savedGame.solvedCategories) &&
         typeof savedGame.mistakes === "number" &&
         Number.isInteger(savedGame.mistakes) &&
-        isGameStatus(savedGame.gameStatus)
+        isGameStatus(savedGame.gameStatus) &&
+        typeof savedGame.isSolutionRevealed ===
+            "boolean"
     );
 }
 
@@ -109,6 +112,11 @@ export default function Game({ puzzle }: GameProps) {
     const [
         isSavedGameLoaded,
         setIsSavedGameLoaded,
+    ] = useState(false);
+
+    const [
+        isSolutionRevealed,
+        setIsSolutionRevealed,
     ] = useState(false);
 
     const storageKey =
@@ -196,6 +204,10 @@ export default function Game({ puzzle }: GameProps) {
 
             setGameStatus(parsedValue.gameStatus);
 
+            setIsSolutionRevealed(
+                parsedValue.isSolutionRevealed,
+            );
+
             if (parsedValue.gameStatus === "won") {
                 setMessage(
                     "Brawo! Wszystkie grupy zostały rozwiązane.",
@@ -204,7 +216,9 @@ export default function Game({ puzzle }: GameProps) {
                 parsedValue.gameStatus === "lost"
             ) {
                 setMessage(
-                    "Koniec gry. Oto poprawne rozwiązanie.",
+                    parsedValue.isSolutionRevealed
+                        ? "Koniec gry. Oto poprawne rozwiązanie."
+                        : "Koniec prób. Czy chcesz zobaczyć rozwiązanie?",
                 );
             }
         } catch {
@@ -228,6 +242,7 @@ export default function Game({ puzzle }: GameProps) {
             solvedCategories,
             mistakes,
             gameStatus,
+            isSolutionRevealed,
         };
 
         localStorage.setItem(
@@ -240,6 +255,7 @@ export default function Game({ puzzle }: GameProps) {
         solvedCategories,
         mistakes,
         gameStatus,
+        isSolutionRevealed,
         isSavedGameLoaded,
         storageKey,
     ]);
@@ -289,6 +305,18 @@ export default function Game({ puzzle }: GameProps) {
                 )!,
             ),
         }));
+    }
+
+    function showSolution() {
+        if (gameStatus !== "lost") {
+            return;
+        }
+
+        setSolvedCategories(revealSolution());
+        setIsSolutionRevealed(true);
+        setMessage(
+            "Koniec gry. Oto poprawne rozwiązanie.",
+        );
     }
 
     function checkSelectionLocally(): CheckResult {
@@ -400,13 +428,11 @@ export default function Game({ puzzle }: GameProps) {
             setSelectedWordIds([]);
 
             if (newMistakes >= maximumMistakes) {
-                const revealedCategories =
-                    revealSolution();
-
-                setSolvedCategories(revealedCategories);
+                setSelectedWordIds([]);
                 setGameStatus("lost");
+                setIsSolutionRevealed(false);
                 setMessage(
-                    "Koniec gry. Oto poprawne rozwiązanie.",
+                    "Koniec prób. Czy chcesz zobaczyć rozwiązanie?",
                 );
 
                 return;
@@ -459,12 +485,13 @@ export default function Game({ puzzle }: GameProps) {
     );
 
     const remainingWords =
-        gameStatus === "lost"
+        gameStatus === "lost" &&
+        isSolutionRevealed
             ? []
             : boardWords.filter(
-                  (word) =>
-                      !solvedWordIds.includes(word.id),
-              );
+                (word) =>
+                    !solvedWordIds.includes(word.id),
+            );
 
     const remainingLives = Math.max(
         maximumMistakes - mistakes,
@@ -594,6 +621,17 @@ export default function Game({ puzzle }: GameProps) {
                                 : "Sprawdź"}
                         </button>
                     </div>
+
+                    {gameStatus === "lost" &&
+                        !isSolutionRevealed && (
+                            <button
+                                type="button"
+                                onClick={showSolution}
+                                className="rounded-full border border-red-300 px-6 py-3 font-bold text-red-200 transition hover:bg-red-300 hover:text-stone-900"
+                            >
+                                Pokaż rozwiązanie
+                            </button>
+                        )}
 
                     <p
                         className={`min-h-6 text-center font-medium ${
