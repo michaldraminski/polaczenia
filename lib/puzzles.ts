@@ -13,6 +13,12 @@ type PuzzleRow = {
     updated_at: string;
 };
 
+type ArchivedPuzzleRow = {
+    id: number;
+    title: string;
+    publication_date: string | null;
+};
+
 type CategoryRow = {
     id: number;
     name: string;
@@ -31,19 +37,38 @@ function isDifficulty(
     return value >= 1 && value <= 4;
 }
 
-export async function getTodaysPuzzle(): Promise<PublicPuzzle | null> {
+async function getPuzzle(
+    filters: {
+        publicationDate?: string;
+        puzzleId?: number;
+        status: "scheduled" | "archived";
+    },
+): Promise<PublicPuzzle | null> {
     const supabase = createServerSupabaseClient();
-    const currentDate = getCurrentDateInPoland();
+
+    let puzzleQuery = supabase
+        .from("puzzles")
+        .select("id, updated_at")
+        .eq("status", filters.status);
+
+    if (filters.publicationDate) {
+        puzzleQuery = puzzleQuery.eq(
+            "publication_date",
+            filters.publicationDate,
+        );
+    }
+
+    if (filters.puzzleId !== undefined) {
+        puzzleQuery = puzzleQuery.eq(
+            "id",
+            filters.puzzleId,
+        );
+    }
 
     const {
         data: puzzleRow,
         error: puzzleError,
-    } = await supabase
-        .from("puzzles")
-        .select("id, updated_at")
-        .eq("publication_date", currentDate)
-        .eq("status", "scheduled")
-        .maybeSingle();
+    } = await puzzleQuery.maybeSingle();
 
     if (puzzleError) {
         throw new Error(
@@ -132,4 +157,42 @@ export async function getTodaysPuzzle(): Promise<PublicPuzzle | null> {
         categories: publicCategories,
         categoryCount: categories.length,
     };
+}
+
+export async function getTodaysPuzzle(): Promise<PublicPuzzle | null> {
+    return getPuzzle({
+        publicationDate: getCurrentDateInPoland(),
+        status: "scheduled",
+    });
+}
+
+export async function getArchivedPuzzle(
+    puzzleId: number,
+): Promise<PublicPuzzle | null> {
+    return getPuzzle({
+        puzzleId,
+        status: "archived",
+    });
+}
+
+export async function getArchivedPuzzles(): Promise<
+    ArchivedPuzzleRow[]
+> {
+    const supabase = createServerSupabaseClient();
+    const { data, error } = await supabase
+        .from("puzzles")
+        .select("id, title, publication_date")
+        .eq("status", "archived")
+        .order("publication_date", {
+            ascending: false,
+            nullsFirst: false,
+        });
+
+    if (error) {
+        throw new Error(
+            `Nie udało się pobrać archiwum: ${error.message}`,
+        );
+    }
+
+    return data as ArchivedPuzzleRow[];
 }

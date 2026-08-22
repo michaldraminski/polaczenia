@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import {
@@ -647,6 +648,15 @@ export default function Game({ puzzle }: GameProps) {
                         {message}
                     </p>
                 </div>
+
+                <footer className="mt-10 border-t border-stone-600 pt-5 text-center">
+                    <Link
+                        href="/archive"
+                        className="text-sm font-medium text-stone-300 transition hover:text-white"
+                    >
+                        Archiwum plansz
+                    </Link>
+                </footer>
             </div>
         </main>
     );

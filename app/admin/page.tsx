@@ -264,14 +264,23 @@ export default async function AdminPage() {
                                             </p>
                                         </div>
 
-                                        <Link
-                                            href={`/admin/puzzles/${puzzle.id}`}
-                                            className="rounded-full border border-white px-5 py-2 text-center font-bold transition hover:bg-white hover:text-stone-900"
-                                        >
-                                            Edytuj
-                                        </Link>
+                                        <div className="flex flex-wrap gap-3">
+                                            <Link
+                                                href={`/admin/puzzles/${puzzle.id}`}
+                                                className="rounded-full border border-white px-5 py-2 text-center font-bold transition hover:bg-white hover:text-stone-900"
+                                            >
+                                                Edytuj
+                                            </Link>
 
-                                        <DeletePuzzleButton puzzleId={puzzle.id} />
+                                            <Link
+                                                href={`/archive/${puzzle.id}`}
+                                                className="rounded-full border border-amber-200 px-5 py-2 font-bold text-amber-100 transition hover:bg-amber-200 hover:text-stone-900"
+                                            >
+                                                Zagraj
+                                            </Link>
+
+                                            <DeletePuzzleButton puzzleId={puzzle.id} />
+                                        </div>
                                     </div>
                                 </article>
                             ))}

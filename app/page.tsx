@@ -1,3 +1,4 @@
+import Link from "next/link";
 import Game from "../components/Game";
 import { getTodaysPuzzle } from "../lib/puzzles";
 
@@ -17,6 +18,13 @@ export default async function Home() {
                     <p className="mt-4 text-lg">
                         Brak planszy na dzisiaj.
                     </p>
+
+                    <Link
+                        href="/archive"
+                        className="mt-6 inline-block font-medium text-stone-300 underline transition hover:text-white"
+                    >
+                        Przejdź do archiwum
+                    </Link>
                 </div>
             </main>
         );
