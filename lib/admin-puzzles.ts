@@ -1,5 +1,6 @@
 import "server-only";
 
+import { getCurrentDateInPoland } from "./date";
 import { createServerSupabaseClient } from "./supabase/server";
 
 export type AdminPuzzle = {
@@ -35,6 +36,24 @@ function isPuzzleStatus(
         value === "scheduled" ||
         value === "archived"
     );
+}
+
+export async function archivePastPuzzles(): Promise<void> {
+    const supabase = createServerSupabaseClient();
+    const currentDate = getCurrentDateInPoland();
+
+    const { error } = await supabase.rpc(
+        "archive_past_puzzles",
+        {
+            current_date_in_poland: currentDate,
+        },
+    );
+
+    if (error) {
+        throw new Error(
+            `Nie udało się zarchiwizować plansz: ${error.message}`,
+        );
+    }
 }
 
 export async function getAdminPuzzles(): Promise<

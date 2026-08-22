@@ -1,7 +1,10 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
-import { getAdminPuzzles } from "../../lib/admin-puzzles";
+import {
+    archivePastPuzzles,
+    getAdminPuzzles,
+} from "../../lib/admin-puzzles";
 import { createAuthServerClient } from "../../lib/supabase/auth-server";
 import { logout } from "./actions";
 
@@ -61,7 +64,14 @@ export default async function AdminPage() {
         redirect("/admin/login");
     }
 
+    await archivePastPuzzles();
     const puzzles = await getAdminPuzzles();
+    const activePuzzles = puzzles.filter(
+        (puzzle) => puzzle.status !== "archived",
+    );
+    const archivedPuzzles = puzzles.filter(
+        (puzzle) => puzzle.status === "archived",
+    );
 
     return (
         <main className="min-h-screen bg-stone-800 px-4 py-8 text-white">
@@ -105,7 +115,7 @@ export default async function AdminPage() {
 
                             <p className="mt-1 text-stone-300">
                                 Liczba plansz:{" "}
-                                {puzzles.length}
+                                {activePuzzles.length}
                             </p>
                         </div>
 
@@ -117,7 +127,7 @@ export default async function AdminPage() {
                         </Link>
                     </div>
 
-                    {puzzles.length === 0 ? (
+                    {activePuzzles.length === 0 ? (
                         <div className="mt-6 rounded-xl bg-stone-700 p-8 text-center">
                             <h3 className="text-xl font-bold">
                                 Brak plansz
@@ -130,7 +140,7 @@ export default async function AdminPage() {
                         </div>
                     ) : (
                         <div className="mt-6 space-y-4">
-                            {puzzles.map((puzzle) => (
+                            {activePuzzles.map((puzzle) => (
                                 <article
                                     key={puzzle.id}
                                     className="rounded-xl bg-stone-700 p-5 shadow-lg"
@@ -194,6 +204,62 @@ export default async function AdminPage() {
                                         <Link
                                             href={`/admin/puzzles/${puzzle.id}`}
                                             className="rounded-full border border-white px-5 py-2 font-bold transition hover:bg-white hover:text-stone-900"
+                                        >
+                                            Edytuj
+                                        </Link>
+                                    </div>
+                                </article>
+                            ))}
+                        </div>
+                    )}
+                </section>
+
+                <section className="mt-12 border-t border-stone-600 pt-8">
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                            <h2 className="text-2xl font-bold">
+                                Archiwum
+                            </h2>
+
+                            <p className="mt-1 text-stone-300">
+                                Plansze z minionych dni: {archivedPuzzles.length}
+                            </p>
+                        </div>
+                    </div>
+
+                    {archivedPuzzles.length === 0 ? (
+                        <div className="mt-6 rounded-xl bg-stone-700 p-8 text-center">
+                            <h3 className="text-xl font-bold">
+                                Archiwum jest puste
+                            </h3>
+
+                            <p className="mt-2 text-stone-300">
+                                Plansze pojawią się tutaj po upływie ich daty publikacji.
+                            </p>
+                        </div>
+                    ) : (
+                        <div className="mt-6 space-y-4">
+                            {archivedPuzzles.map((puzzle) => (
+                                <article
+                                    key={puzzle.id}
+                                    className="rounded-xl bg-stone-700 p-5 shadow-lg"
+                                >
+                                    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                                        <div>
+                                            <h3 className="text-xl font-bold">
+                                                {puzzle.title}
+                                            </h3>
+
+                                            <p className="mt-2 text-stone-300">
+                                                Data publikacji: {formatPublicationDate(
+                                                    puzzle.publicationDate,
+                                                )}
+                                            </p>
+                                        </div>
+
+                                        <Link
+                                            href={`/admin/puzzles/${puzzle.id}`}
+                                            className="rounded-full border border-white px-5 py-2 text-center font-bold transition hover:bg-white hover:text-stone-900"
                                         >
                                             Edytuj
                                         </Link>
