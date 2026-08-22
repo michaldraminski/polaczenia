@@ -248,3 +248,63 @@ export async function PATCH(
         puzzleId,
     });
 }
+
+export async function DELETE(
+    request: Request,
+    context: RouteContext,
+) {
+    const authClient =
+        await createAuthServerClient();
+
+    const {
+        data: { user },
+        error: authError,
+    } = await authClient.auth.getUser();
+
+    if (authError || !user) {
+        return Response.json(
+            { error: "Brak uprawnień." },
+            { status: 401 },
+        );
+    }
+
+    const { id } = await context.params;
+    const puzzleId = Number(id);
+
+    if (!Number.isInteger(puzzleId)) {
+        return Response.json(
+            {
+                error: "Niepoprawny identyfikator planszy.",
+            },
+            { status: 400 },
+        );
+    }
+
+    const supabase =
+        createServerSupabaseClient();
+    const { error } = await supabase.rpc(
+        "delete_puzzle",
+        { target_puzzle_id: puzzleId },
+    );
+
+    if (error) {
+        let message =
+            "Nie udało się usunąć planszy.";
+
+        if (error.message.includes("nie istnieje")) {
+            message = "Plansza nie istnieje.";
+        } else if (
+            error.message.includes("zaplanowanej")
+        ) {
+            message =
+                "Nie można usunąć zaplanowanej planszy.";
+        }
+
+        return Response.json(
+            { error: message },
+            { status: 400 },
+        );
+    }
+
+    return Response.json({ puzzleId });
+}

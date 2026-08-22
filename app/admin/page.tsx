@@ -6,6 +6,7 @@ import {
     getAdminPuzzles,
 } from "../../lib/admin-puzzles";
 import { createAuthServerClient } from "../../lib/supabase/auth-server";
+import DeletePuzzleButton from "../../components/DeletePuzzleButton";
 import { logout } from "./actions";
 
 type PuzzleStatus =
@@ -201,12 +202,18 @@ export default async function AdminPage() {
                                     </div>
 
                                     <div className="mt-5 border-t border-stone-600 pt-4">
-                                        <Link
-                                            href={`/admin/puzzles/${puzzle.id}`}
-                                            className="rounded-full border border-white px-5 py-2 font-bold transition hover:bg-white hover:text-stone-900"
-                                        >
-                                            Edytuj
-                                        </Link>
+                                        <div className="flex flex-wrap gap-3">
+                                            <Link
+                                                href={`/admin/puzzles/${puzzle.id}`}
+                                                className="rounded-full border border-white px-5 py-2 font-bold transition hover:bg-white hover:text-stone-900"
+                                            >
+                                                Edytuj
+                                            </Link>
+
+                                            {puzzle.status !== "scheduled" && (
+                                                <DeletePuzzleButton puzzleId={puzzle.id} />
+                                            )}
+                                        </div>
                                     </div>
                                 </article>
                             ))}
@@ -263,6 +270,8 @@ export default async function AdminPage() {
                                         >
                                             Edytuj
                                         </Link>
+
+                                        <DeletePuzzleButton puzzleId={puzzle.id} />
                                     </div>
                                 </article>
                             ))}
