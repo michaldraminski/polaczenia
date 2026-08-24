@@ -20,6 +20,7 @@ import type {
     PublicPuzzle,
 } from "../types/game";
 import { GameHeader } from "./GameHeader";
+import { Toast } from "./Toast";
 import { SolvedCategories } from "./SolvedCategories";
 import { WordBoard } from "./WordBoard";
 import { GameControls } from "./GameControls";
@@ -45,6 +46,9 @@ export default function Game({ puzzle }: GameProps) {
     const [isSavedGameLoaded, setIsSavedGameLoaded] = useState(false);
     const [isSolutionRevealed, setIsSolutionRevealed] =
         useState(false);
+
+    const [toast, setToast] = useState<{ text: string; key: number } | null>(null);
+    const [toastVisible, setToastVisible] = useState(false);
 
     const storageKey = getStorageKey(puzzle);
 
@@ -110,6 +114,20 @@ export default function Game({ puzzle }: GameProps) {
 
         setIsSavedGameLoaded(true);
     }, [puzzle, storageKey]);
+
+    useEffect(() => {
+        if (!toast) return;
+
+        setToastVisible(true);
+
+        const hideTimeout = setTimeout(() => setToastVisible(false), 1600);
+        const removeTimeout = setTimeout(() => setToast(null), 1900);
+
+        return () => {
+            clearTimeout(hideTimeout);
+            clearTimeout(removeTimeout);
+        };
+    }, [toast]);
 
     useEffect(() => {
         if (!isSavedGameLoaded) {
@@ -188,7 +206,9 @@ export default function Game({ puzzle }: GameProps) {
         }
 
         if (selectedWordIds.length !== 4) {
-            setMessage("Zaznacz dokładnie cztery słowa.");
+            showToast(
+                "Zaznacz dokładnie cztery słowa.",
+            );
             return;
         }
 
@@ -240,13 +260,11 @@ export default function Game({ puzzle }: GameProps) {
             }
 
             if (checkResult.result === "one-away") {
-                setMessage("Brakuje jednego!");
+                showToast("Brakuje jednego!");
                 return;
             }
 
-            setMessage(
-                "Te słowa nie tworzą grupy.",
-            );
+            showToast("Te słowa nie tworzą grupy.");
         } catch (error) {
             const errorMessage =
                 error instanceof Error
@@ -257,6 +275,10 @@ export default function Game({ puzzle }: GameProps) {
         } finally {
             setIsChecking(false);
         }
+    }
+
+    function showToast(text: string) {
+        setToast({ text, key: Date.now() });
     }
 
     function shuffleWords() {
@@ -292,6 +314,10 @@ export default function Game({ puzzle }: GameProps) {
 
     return (
         <main className="min-h-screen overflow-x-hidden bg-stone-800 px-2 py-5 text-white sm:px-4 sm:py-8">
+            {toast && (
+                <Toast text={toast.text} visible={toastVisible} />
+            )}
+
             <div className="mx-auto w-full max-w-3xl">
                 <GameHeader />
 
