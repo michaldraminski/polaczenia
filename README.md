@@ -80,7 +80,9 @@ http://localhost:3000/admin
 
 ## Docker
 
-Możesz uruchomić aplikację w kontenerze produkcyjnym z użyciem Docker Compose.
+### Lokalny development
+
+Do szybkiego uruchomienia aplikacji w trybie deweloperskim bez dodatkowych usług:
 
 1. Skopiuj przykładowe zmienne środowiskowe:
 
@@ -88,18 +90,28 @@ Możesz uruchomić aplikację w kontenerze produkcyjnym z użyciem Docker Compos
 Copy-Item .env.example .env.local
 ```
 
-2. Ustaw prawidłowe wartości dla Supabase w pliku `.env.local`.
+2. Ustaw prawidłowe wartości Supabase w pliku `.env.local`.
 
-3. Uruchom aplikację:
+3. Uruchom kontener deweloperski:
 
 ```powershell
-docker compose up --build
+docker compose -f docker-compose.dev.yml up --build
 ```
 
 Aplikacja będzie dostępna pod adresem:
 
 ```text
 http://localhost:3000
+```
+
+To polecenie montuje katalog projektu do kontenera i uruchamia `next dev` z widocznością na porcie 3000.
+
+### Produkcja
+
+Możesz uruchomić aplikację w kontenerze produkcyjnym z użyciem Docker Compose.
+
+```powershell
+docker compose up --build
 ```
 
 Możesz też zbudować obraz ręcznie:
