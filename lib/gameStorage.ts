@@ -1,5 +1,10 @@
-import type { PublicPuzzle } from "../types/game";
-import type { SavedGame, SolvedCategory, GameStatus } from "./gameTypes";
+import type {
+    GameStatus,
+    PublicPuzzle,
+    SolvedCategory,
+} from "../types/game";
+
+import type { SavedGame } from "./gameTypes";
 
 export const getStorageKey = (puzzle: PublicPuzzle) =>
     `polaczenia:game:${puzzle.id}:${puzzle.updatedAt}`;
