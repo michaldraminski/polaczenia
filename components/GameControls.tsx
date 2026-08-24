@@ -38,7 +38,7 @@ export function GameControls({
                 Zaznaczono: {selectedCount} / 4
             </p>
 
-            <div className="flex gap-3">
+            <div className="flex w-full max-w-sm gap-3">
                 <button
                     type="button"
                     onClick={onShuffle}
