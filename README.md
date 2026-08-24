@@ -39,7 +39,7 @@ Aplikacja: **https://polaczenia.vercel.app/**
 
 ### Wymagania
 
-- Node.js LTS
+- Node.js 22 LTS
 - npm
 - Git
 
@@ -76,6 +76,37 @@ Panel administratora:
 
 ```text
 http://localhost:3000/admin
+```
+
+## Docker
+
+Możesz uruchomić aplikację w kontenerze produkcyjnym z użyciem Docker Compose.
+
+1. Skopiuj przykładowe zmienne środowiskowe:
+
+```powershell
+Copy-Item .env.example .env.local
+```
+
+2. Ustaw prawidłowe wartości dla Supabase w pliku `.env.local`.
+
+3. Uruchom aplikację:
+
+```powershell
+docker compose up --build
+```
+
+Aplikacja będzie dostępna pod adresem:
+
+```text
+http://localhost:3000
+```
+
+Możesz też zbudować obraz ręcznie:
+
+```powershell
+docker build -t polaczenia .
+docker run --rm -p 3000:3000 --env-file .env.local polaczenia
 ```
 
 ## Build produkcyjny
