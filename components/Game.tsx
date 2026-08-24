@@ -49,6 +49,7 @@ export default function Game({ puzzle }: GameProps) {
 
     const [toast, setToast] = useState<{ text: string; key: number } | null>(null);
     const [toastVisible, setToastVisible] = useState(false);
+    const [fadingWordIds, setFadingWordIds] = useState<number[]>([]);
 
     const storageKey = getStorageKey(puzzle);
 
@@ -198,17 +199,12 @@ export default function Game({ puzzle }: GameProps) {
     }
 
     async function checkSelection() {
-        if (
-            gameStatus !== "playing" ||
-            isChecking
-        ) {
+        if (gameStatus !== "playing" || isChecking) {
             return;
         }
 
         if (selectedWordIds.length !== 4) {
-            showToast(
-                "Zaznacz dokładnie cztery słowa.",
-            );
+            showToast("Zaznacz dokładnie cztery słowa.");
             return;
         }
 
@@ -227,21 +223,28 @@ export default function Game({ puzzle }: GameProps) {
                     checkResult.category,
                 ];
 
-                setSolvedCategories(newSolvedCategories);
-                setSelectedWordIds([]);
+                setFadingWordIds(selectedWordIds);
 
-                if (
-                    newSolvedCategories.length ===
-                    puzzle.categoryCount
-                ) {
-                    setGameStatus("won");
-                    setMessage(
-                        "Brawo! Wszystkie grupy zostały rozwiązane.",
-                    );
-                    return;
-                }
+                setTimeout(() => {
+                    setSolvedCategories(newSolvedCategories);
+                    setSelectedWordIds([]);
+                    setFadingWordIds([]);
 
-                setMessage("Dobrze!");
+                    if (
+                        newSolvedCategories.length ===
+                        puzzle.categoryCount
+                    ) {
+                        setGameStatus("won");
+                        setMessage(
+                            "Brawo! Wszystkie grupy zostały rozwiązane.",
+                        );
+                    } else {
+                        setMessage("Dobrze!");
+                    }
+
+                    setIsChecking(false);
+                }, 320);
+
                 return;
             }
 
@@ -256,15 +259,17 @@ export default function Game({ puzzle }: GameProps) {
                 setMessage(
                     "Koniec prób. Czy chcesz zobaczyć rozwiązanie?",
                 );
+                setIsChecking(false);
                 return;
             }
 
             if (checkResult.result === "one-away") {
                 showToast("Brakuje jednego!");
-                return;
+            } else {
+                showToast("Te słowa nie tworzą grupy.");
             }
 
-            showToast("Te słowa nie tworzą grupy.");
+            setIsChecking(false);
         } catch (error) {
             const errorMessage =
                 error instanceof Error
@@ -272,7 +277,6 @@ export default function Game({ puzzle }: GameProps) {
                     : "Wystąpił nieoczekiwany błąd.";
 
             setMessage(errorMessage);
-        } finally {
             setIsChecking(false);
         }
     }
@@ -328,10 +332,8 @@ export default function Game({ puzzle }: GameProps) {
                 <WordBoard
                     words={remainingWords}
                     selectedWordIds={selectedWordIds}
-                    disabled={
-                        gameStatus !== "playing" ||
-                        isChecking
-                    }
+                    disabled={gameStatus !== "playing" || isChecking}
+                    fadingWordIds={fadingWordIds}
                     onToggleWord={toggleWord}
                 />
 

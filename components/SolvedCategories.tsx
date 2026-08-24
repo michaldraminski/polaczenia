@@ -18,7 +18,7 @@ export function SolvedCategories({
             {displayedCategories.map((category) => (
                 <div
                     key={category.name}
-                    className={`min-w-0 rounded-lg px-3 py-4 text-center text-stone-900 sm:p-5 ${getCategoryColor(
+                    className={`category-enter min-w-0 rounded-lg px-3 py-4 text-center text-stone-900 sm:p-5 ${getCategoryColor(
                         category.difficulty,
                     )}`}
                 >
