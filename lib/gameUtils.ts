@@ -5,12 +5,12 @@ export function getCategoryColor(
 ): string {
     switch (difficulty) {
         case 1:
-            return "bg-amber-200";
+            return "bg-green-300";
         case 2:
-            return "bg-emerald-300";
+            return "bg-yellow-300";
         case 3:
-            return "bg-sky-300";
+            return "bg-orange-300";
         case 4:
-            return "bg-violet-300";
+            return "bg-red-400";
     }
 }

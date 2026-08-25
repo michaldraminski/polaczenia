@@ -27,17 +27,17 @@ type ErrorResponse = {
 };
 
 const categoryColors = [
-    "border-yellow-400",
     "border-green-500",
-    "border-blue-500",
-    "border-purple-500",
+    "border-yellow-400",
+    "border-orange-500",
+    "border-red-500",
 ];
 
 const difficultyLabels = [
-    "Żółta — najłatwiejsza",
-    "Zielona",
-    "Niebieska",
-    "Fioletowa — najtrudniejsza",
+    "Zielona — najłatwiejsza",
+    "Żółta",
+    "Pomarańczowa",
+    "Czerwona — najtrudniejsza",
 ];
 
 function createEmptyCategories(): CategoryForm[] {
