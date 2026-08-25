@@ -1,0 +1,168 @@
+{
+  "puzzles": [
+    {
+      "id": 1,
+      "title": "Demo puzzle",
+      "publication_date": "2026-08-25",
+      "status": "scheduled",
+      "created_at": "2026-01-01T00:00:00Z",
+      "updated_at": "2026-08-25T07:26:58.624Z"
+    }
+  ],
+  "categories": [
+    {
+      "id": 1,
+      "puzzle_id": 1,
+      "name": "Zwierzęta",
+      "difficulty": 1
+    },
+    {
+      "id": 2,
+      "puzzle_id": 1,
+      "name": "Owoce",
+      "difficulty": 2
+    },
+    {
+      "id": 3,
+      "puzzle_id": 1,
+      "name": "Państwa",
+      "difficulty": 3
+    },
+    {
+      "id": 4,
+      "puzzle_id": 1,
+      "name": "Narzędzia webowe",
+      "difficulty": 4
+    }
+  ],
+  "words": [
+    {
+      "id": 1,
+      "category_id": 1,
+      "value": "kot",
+      "position": 1,
+      "created_at": "2026-08-25T07:26:58.624Z",
+      "updated_at": "2026-08-25T07:26:58.624Z"
+    },
+    {
+      "id": 2,
+      "category_id": 1,
+      "value": "pies",
+      "position": 2,
+      "created_at": "2026-08-25T07:26:58.624Z",
+      "updated_at": "2026-08-25T07:26:58.624Z"
+    },
+    {
+      "id": 3,
+      "category_id": 1,
+      "value": "krowa",
+      "position": 3,
+      "created_at": "2026-08-25T07:26:58.624Z",
+      "updated_at": "2026-08-25T07:26:58.624Z"
+    },
+    {
+      "id": 4,
+      "category_id": 1,
+      "value": "lew",
+      "position": 4,
+      "created_at": "2026-08-25T07:26:58.624Z",
+      "updated_at": "2026-08-25T07:26:58.624Z"
+    },
+    {
+      "id": 5,
+      "category_id": 2,
+      "value": "jabłko",
+      "position": 1,
+      "created_at": "2026-08-25T07:26:58.624Z",
+      "updated_at": "2026-08-25T07:26:58.624Z"
+    },
+    {
+      "id": 6,
+      "category_id": 2,
+      "value": "gruszka",
+      "position": 2,
+      "created_at": "2026-08-25T07:26:58.624Z",
+      "updated_at": "2026-08-25T07:26:58.624Z"
+    },
+    {
+      "id": 7,
+      "category_id": 2,
+      "value": "pomarańcza",
+      "position": 3,
+      "created_at": "2026-08-25T07:26:58.624Z",
+      "updated_at": "2026-08-25T07:26:58.624Z"
+    },
+    {
+      "id": 8,
+      "category_id": 2,
+      "value": "banan",
+      "position": 4,
+      "created_at": "2026-08-25T07:26:58.624Z",
+      "updated_at": "2026-08-25T07:26:58.624Z"
+    },
+    {
+      "id": 9,
+      "category_id": 3,
+      "value": "Polska",
+      "position": 1,
+      "created_at": "2026-08-25T07:26:58.624Z",
+      "updated_at": "2026-08-25T07:26:58.624Z"
+    },
+    {
+      "id": 10,
+      "category_id": 3,
+      "value": "Francja",
+      "position": 2,
+      "created_at": "2026-08-25T07:26:58.624Z",
+      "updated_at": "2026-08-25T07:26:58.624Z"
+    },
+    {
+      "id": 11,
+      "category_id": 3,
+      "value": "Hiszpania",
+      "position": 3,
+      "created_at": "2026-08-25T07:26:58.624Z",
+      "updated_at": "2026-08-25T07:26:58.624Z"
+    },
+    {
+      "id": 12,
+      "category_id": 3,
+      "value": "Niemcy",
+      "position": 4,
+      "created_at": "2026-08-25T07:26:58.624Z",
+      "updated_at": "2026-08-25T07:26:58.624Z"
+    },
+    {
+      "id": 13,
+      "category_id": 4,
+      "value": "React",
+      "position": 1,
+      "created_at": "2026-08-25T07:26:58.624Z",
+      "updated_at": "2026-08-25T07:26:58.624Z"
+    },
+    {
+      "id": 14,
+      "category_id": 4,
+      "value": "Node",
+      "position": 2,
+      "created_at": "2026-08-25T07:26:58.624Z",
+      "updated_at": "2026-08-25T07:26:58.624Z"
+    },
+    {
+      "id": 15,
+      "category_id": 4,
+      "value": "Docker",
+      "position": 3,
+      "created_at": "2026-08-25T07:26:58.624Z",
+      "updated_at": "2026-08-25T07:26:58.624Z"
+    },
+    {
+      "id": 16,
+      "category_id": 4,
+      "value": "Supabase",
+      "position": 4,
+      "created_at": "2026-08-25T07:26:58.624Z",
+      "updated_at": "2026-08-25T07:26:58.624Z"
+    }
+  ]
+}
