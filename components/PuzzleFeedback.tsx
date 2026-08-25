@@ -1,8 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
-import { getClientGameId } from "../lib/gameStorage";
+import {
+    getClientGameId,
+    hasSubmittedFeedback,
+    markFeedbackSubmitted,
+} from "../lib/gameStorage";
 import type { PublicPuzzle } from "../types/game";
 
 type PuzzleFeedbackProps = {
@@ -13,31 +17,56 @@ export function PuzzleFeedback({ puzzle }: PuzzleFeedbackProps) {
     const [difficultyRating, setDifficultyRating] = useState(0);
     const [qualityRating, setQualityRating] = useState(0);
     const [submitted, setSubmitted] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const [message, setMessage] = useState("");
 
+    useEffect(() => {
+        setSubmitted(hasSubmittedFeedback(puzzle));
+    }, [puzzle]);
+
     async function submitFeedback() {
-        if (!difficultyRating || !qualityRating) {
-            setMessage("Wybierz obie oceny.");
+        if (
+            isSubmitting ||
+            submitted ||
+            !difficultyRating ||
+            !qualityRating
+        ) {
+            if (!difficultyRating || !qualityRating) {
+                setMessage("Wybierz obie oceny.");
+            }
             return;
         }
 
-        const response = await fetch("/api/puzzles/feedback", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                puzzleId: puzzle.id,
-                clientGameId: getClientGameId(puzzle),
-                difficultyRating,
-                qualityRating,
-            }),
-        });
+        setIsSubmitting(true);
+        setMessage("");
 
-        if (!response.ok) {
-            setMessage("Nie udało się zapisać oceny.");
-            return;
+        try {
+            const response = await fetch("/api/puzzles/feedback", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    puzzleId: puzzle.id,
+                    clientGameId: getClientGameId(puzzle),
+                    difficultyRating,
+                    qualityRating,
+                }),
+            });
+
+            if (!response.ok) {
+                throw new Error("Nie udało się zapisać oceny.");
+            }
+
+            markFeedbackSubmitted(puzzle);
+            setSubmitted(true);
+        } catch (error) {
+            setMessage(
+                error instanceof Error
+                    ? error.message
+                    : "Nie udało się zapisać oceny.",
+            );
+        } finally {
+            setIsSubmitting(false);
         }
-
-        setSubmitted(true);
     }
 
     if (submitted) {
@@ -52,9 +81,10 @@ export function PuzzleFeedback({ puzzle }: PuzzleFeedbackProps) {
             <button
                 type="button"
                 onClick={submitFeedback}
-                className="mt-3 rounded-full bg-white px-5 py-2 font-bold text-stone-900 transition hover:bg-stone-200"
+                disabled={isSubmitting}
+                className="mt-3 rounded-full bg-white px-5 py-2 font-bold text-stone-900 transition hover:bg-stone-200 disabled:cursor-wait disabled:opacity-60"
             >
-                Wyślij ocenę
+                {isSubmitting ? "Wysyłanie..." : "Wyślij ocenę"}
             </button>
             {message && <p className="mt-2 text-sm text-red-200">{message}</p>}
         </section>
