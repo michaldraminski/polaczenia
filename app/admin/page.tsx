@@ -53,6 +53,18 @@ function formatPublicationDate(
     return `${day}.${month}.${year}`;
 }
 
+function formatDuration(seconds: number | null): string {
+    if (seconds === null) {
+        return "Brak danych";
+    }
+
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return minutes > 0
+        ? `${minutes} min ${remainingSeconds} s`
+        : `${remainingSeconds} s`;
+}
+
 export default async function AdminPage() {
     const supabase = await createAuthServerClient();
 
@@ -180,6 +192,15 @@ export default async function AdminPage() {
                                             <p className="mt-1 text-stone-300">
                                                 Ostatnio edytował: {puzzle.lastEditedBy ?? "Nieznany moderator"}
                                             </p>
+
+                                            <div className="mt-4 grid grid-cols-2 gap-3 text-sm text-stone-300 sm:grid-cols-6">
+                                                <p>Gry: <strong className="text-white">{puzzle.gameStats.games}</strong></p>
+                                                <p>Sukcesy: <strong className="text-white">{puzzle.gameStats.winRate === null ? "Brak danych" : `${puzzle.gameStats.winRate}%`}</strong></p>
+                                                <p>Śr. prób: <strong className="text-white">{puzzle.gameStats.averageAttempts ?? "Brak danych"}</strong></p>
+                                                <p>Śr. czas: <strong className="text-white">{formatDuration(puzzle.gameStats.averageDurationSeconds)}</strong></p>
+                                                <p>Trudność: <strong className="text-white">{puzzle.gameStats.averageDifficulty ?? "Brak danych"}/5</strong></p>
+                                                <p>Jakość: <strong className="text-white">{puzzle.gameStats.averageQuality ?? "Brak danych"}/5 ({puzzle.gameStats.feedbackCount})</strong></p>
+                                            </div>
                                         </div>
 
                                         <div className="flex gap-6 text-sm">
@@ -278,6 +299,15 @@ export default async function AdminPage() {
                                             <p className="mt-1 text-stone-300">
                                                 Ostatnio edytował: {puzzle.lastEditedBy ?? "Nieznany moderator"}
                                             </p>
+
+                                            <div className="mt-4 grid grid-cols-2 gap-3 text-sm text-stone-300 sm:grid-cols-6">
+                                                <p>Gry: <strong className="text-white">{puzzle.gameStats.games}</strong></p>
+                                                <p>Sukcesy: <strong className="text-white">{puzzle.gameStats.winRate === null ? "Brak danych" : `${puzzle.gameStats.winRate}%`}</strong></p>
+                                                <p>Śr. prób: <strong className="text-white">{puzzle.gameStats.averageAttempts ?? "Brak danych"}</strong></p>
+                                                <p>Śr. czas: <strong className="text-white">{formatDuration(puzzle.gameStats.averageDurationSeconds)}</strong></p>
+                                                <p>Trudność: <strong className="text-white">{puzzle.gameStats.averageDifficulty ?? "Brak danych"}/5</strong></p>
+                                                <p>Jakość: <strong className="text-white">{puzzle.gameStats.averageQuality ?? "Brak danych"}/5 ({puzzle.gameStats.feedbackCount})</strong></p>
+                                            </div>
                                         </div>
 
                                         <div className="flex flex-wrap gap-3">

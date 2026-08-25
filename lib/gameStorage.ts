@@ -15,6 +15,9 @@ const getStartedAtKey = (puzzle: PublicPuzzle) =>
 const getClientGameIdKey = (puzzle: PublicPuzzle) =>
     `polaczenia:client-game:${puzzle.id}:${puzzle.updatedAt}`;
 
+const getFeedbackSubmittedKey = (puzzle: PublicPuzzle) =>
+    `polaczenia:feedback-submitted:${puzzle.id}:${puzzle.updatedAt}`;
+
 export function getGameStartedAt(puzzle: PublicPuzzle): number {
     const key = getStartedAtKey(puzzle);
     const savedValue = localStorage.getItem(key);
@@ -40,6 +43,23 @@ export function getClientGameId(puzzle: PublicPuzzle): string {
     const clientGameId = crypto.randomUUID();
     localStorage.setItem(key, clientGameId);
     return clientGameId;
+}
+
+export function hasSubmittedFeedback(
+    puzzle: PublicPuzzle,
+): boolean {
+    return localStorage.getItem(
+        getFeedbackSubmittedKey(puzzle),
+    ) === "true";
+}
+
+export function markFeedbackSubmitted(
+    puzzle: PublicPuzzle,
+): void {
+    localStorage.setItem(
+        getFeedbackSubmittedKey(puzzle),
+        "true",
+    );
 }
 
 function isGameStatus(value: unknown): value is GameStatus {

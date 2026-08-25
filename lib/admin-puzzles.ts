@@ -14,6 +14,18 @@ export type AdminPuzzle = {
     lastEditedByUserId: string | null;
     createdBy: string | null;
     lastEditedBy: string | null;
+    gameStats: PuzzleGameStats;
+};
+
+export type PuzzleGameStats = {
+    games: number;
+    wins: number;
+    winRate: number | null;
+    averageAttempts: number | null;
+    averageDurationSeconds: number | null;
+    feedbackCount: number;
+    averageDifficulty: number | null;
+    averageQuality: number | null;
 };
 
 type PuzzleRow = {
@@ -32,6 +44,30 @@ type CategoryRow = {
 
 type WordRow = {
     category_id: number;
+};
+
+type GameResultRow = {
+    puzzle_id: number;
+    result: "won" | "lost";
+    attempts: number;
+    duration_seconds: number;
+};
+
+type FeedbackRow = {
+    puzzle_id: number;
+    difficulty_rating: number;
+    quality_rating: number;
+};
+
+const emptyPuzzleGameStats: PuzzleGameStats = {
+    games: 0,
+    wins: 0,
+    winRate: null,
+    averageAttempts: null,
+    averageDurationSeconds: null,
+    feedbackCount: 0,
+    averageDifficulty: null,
+    averageQuality: null,
 };
 
 function isPuzzleStatus(
@@ -172,6 +208,31 @@ export async function getAdminPuzzles(): Promise<
         (puzzle) => puzzle.id,
     );
 
+    const { data: gameResultData, error: gameResultsError } = await supabase
+        .from("game_results")
+        .select("puzzle_id, result, attempts, duration_seconds")
+        .in("puzzle_id", puzzleIds);
+
+    if (gameResultsError) {
+        throw new Error(
+            `Nie udało się pobrać statystyk gier: ${gameResultsError.message}`,
+        );
+    }
+
+    const { data: feedbackData, error: feedbackError } = await supabase
+        .from("puzzle_feedback")
+        .select("puzzle_id, difficulty_rating, quality_rating")
+        .in("puzzle_id", puzzleIds);
+
+    if (feedbackError) {
+        throw new Error(
+            `Nie udało się pobrać ocen plansz: ${feedbackError.message}`,
+        );
+    }
+
+    const gameResults = gameResultData as GameResultRow[];
+    const feedbackRows = feedbackData as FeedbackRow[];
+
     const {
         data: categoryRows,
         error: categoriesError,
@@ -261,8 +322,61 @@ export async function getAdminPuzzles(): Promise<
                           puzzle.last_edited_by_user_id,
                       ) ?? null
                     : null,
+            gameStats: getPuzzleGameStats(
+                puzzle.id,
+                gameResults,
+                feedbackRows,
+            ),
         };
     });
+}
+
+function getPuzzleGameStats(
+    puzzleId: number,
+    gameResults: GameResultRow[],
+    feedbackRows: FeedbackRow[],
+): PuzzleGameStats {
+    const results = gameResults.filter(
+        (result) => result.puzzle_id === puzzleId,
+    );
+    const feedback = feedbackRows.filter(
+        (row) => row.puzzle_id === puzzleId,
+    );
+
+    if (results.length === 0 && feedback.length === 0) {
+        return emptyPuzzleGameStats;
+    }
+
+    const wins = results.filter(
+        (result) => result.result === "won",
+    ).length;
+
+    return {
+        games: results.length,
+        wins,
+        winRate: results.length > 0
+            ? Math.round((wins / results.length) * 100)
+            : null,
+        averageAttempts: results.length > 0
+            ? average(results.map((result) => result.attempts))
+            : null,
+        averageDurationSeconds: results.length > 0
+            ? average(results.map((result) => result.duration_seconds))
+            : null,
+        feedbackCount: feedback.length,
+        averageDifficulty: feedback.length > 0
+            ? average(feedback.map((row) => row.difficulty_rating))
+            : null,
+        averageQuality: feedback.length > 0
+            ? average(feedback.map((row) => row.quality_rating))
+            : null,
+    };
+}
+
+function average(values: number[]): number {
+    return Math.round(
+        (values.reduce((sum, value) => sum + value, 0) / values.length) * 10,
+    ) / 10;
 }
 
 export type AdminPuzzleCategory = {
