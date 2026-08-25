@@ -27,6 +27,7 @@ import { SolvedCategories } from "./SolvedCategories";
 import { WordBoard } from "./WordBoard";
 import { GameControls } from "./GameControls";
 import { GameStatusMessage } from "./GameStatusMessage";
+import { PuzzleFeedback } from "./PuzzleFeedback";
 
 type GameProps = {
     puzzle: PublicPuzzle;
@@ -397,6 +398,10 @@ export default function Game({ puzzle }: GameProps) {
                     gameStatus={gameStatus}
                     message={message}
                 />
+
+                {gameStatus === "won" && (
+                    <PuzzleFeedback puzzle={puzzle} />
+                )}
 
                 <footer className="mt-10 border-t border-stone-600 pt-5 text-center">
                     <Link
