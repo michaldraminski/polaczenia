@@ -1,4 +1,4 @@
-create table public.words (
+create table if not exists public.words (
     id bigint generated always as identity primary key,
 
     category_id bigint not null
@@ -24,5 +24,5 @@ create table public.words (
         unique (category_id, value)
 );
 
-create index words_category_id_index
+create index if not exists words_category_id_index
     on public.words(category_id);

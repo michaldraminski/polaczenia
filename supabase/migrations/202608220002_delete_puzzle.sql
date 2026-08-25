@@ -1,4 +1,4 @@
-create function public.delete_puzzle(
+create or replace function public.delete_puzzle(
     target_puzzle_id bigint
 )
 returns void

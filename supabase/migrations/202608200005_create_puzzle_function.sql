@@ -1,4 +1,4 @@
-create function public.create_puzzle(
+create or replace function public.create_puzzle(
     puzzle_title text,
     puzzle_publication_date date,
     puzzle_status text,

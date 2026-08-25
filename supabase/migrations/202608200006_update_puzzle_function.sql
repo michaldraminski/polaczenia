@@ -1,4 +1,4 @@
-create function public.update_puzzle(
+create or replace function public.update_puzzle(
     target_puzzle_id bigint,
     puzzle_title text,
     puzzle_publication_date date,

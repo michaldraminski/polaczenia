@@ -1,4 +1,4 @@
-create table public.categories (
+create table if not exists public.categories (
     id bigint generated always as identity primary key,
 
     puzzle_id bigint not null
@@ -24,5 +24,5 @@ create table public.categories (
         unique (puzzle_id, name)
 );
 
-create index categories_puzzle_id_index
+create index if not exists categories_puzzle_id_index
     on public.categories(puzzle_id);

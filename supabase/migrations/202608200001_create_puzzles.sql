@@ -1,4 +1,4 @@
-create table public.puzzles (
+create table if not exists public.puzzles (
     id bigint generated always as identity primary key,
 
     title text not null,

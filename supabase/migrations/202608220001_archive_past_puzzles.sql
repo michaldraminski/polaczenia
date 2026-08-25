@@ -1,4 +1,4 @@
-create function public.archive_past_puzzles(
+create or replace function public.archive_past_puzzles(
     current_date_in_poland date
 )
 returns void
