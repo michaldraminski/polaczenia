@@ -9,6 +9,39 @@ import type { SavedGame } from "./gameTypes";
 export const getStorageKey = (puzzle: PublicPuzzle) =>
     `polaczenia:game:${puzzle.id}:${puzzle.updatedAt}`;
 
+const getStartedAtKey = (puzzle: PublicPuzzle) =>
+    `polaczenia:started:${puzzle.id}:${puzzle.updatedAt}`;
+
+const getClientGameIdKey = (puzzle: PublicPuzzle) =>
+    `polaczenia:client-game:${puzzle.id}:${puzzle.updatedAt}`;
+
+export function getGameStartedAt(puzzle: PublicPuzzle): number {
+    const key = getStartedAtKey(puzzle);
+    const savedValue = localStorage.getItem(key);
+    const startedAt = savedValue ? Number(savedValue) : NaN;
+
+    if (Number.isFinite(startedAt)) {
+        return startedAt;
+    }
+
+    const currentTime = Date.now();
+    localStorage.setItem(key, String(currentTime));
+    return currentTime;
+}
+
+export function getClientGameId(puzzle: PublicPuzzle): string {
+    const key = getClientGameIdKey(puzzle);
+    const savedValue = localStorage.getItem(key);
+
+    if (savedValue) {
+        return savedValue;
+    }
+
+    const clientGameId = crypto.randomUUID();
+    localStorage.setItem(key, clientGameId);
+    return clientGameId;
+}
+
 function isGameStatus(value: unknown): value is GameStatus {
     return value === "playing" || value === "won" || value === "lost";
 }

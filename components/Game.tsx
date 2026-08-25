@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { shuffle, shuffleWithSeed } from "../lib/shuffle";
 import {
@@ -11,6 +11,8 @@ import {
 } from "../lib/gameLogic";
 import {
     getStorageKey,
+    getClientGameId,
+    getGameStartedAt,
     loadSavedGame,
     saveGame,
 } from "../lib/gameStorage";
@@ -50,10 +52,14 @@ export default function Game({ puzzle }: GameProps) {
     const [toast, setToast] = useState<{ text: string; key: number } | null>(null);
     const [toastVisible, setToastVisible] = useState(false);
     const [fadingWordIds, setFadingWordIds] = useState<number[]>([]);
+    const gameStartedAt = useRef<number | null>(null);
+    const resultReported = useRef(false);
 
     const storageKey = getStorageKey(puzzle);
 
     useEffect(() => {
+        gameStartedAt.current = getGameStartedAt(puzzle);
+
         const initialBoardWords = shuffleWithSeed(
             puzzle.words,
             puzzle.id,
@@ -115,6 +121,45 @@ export default function Game({ puzzle }: GameProps) {
 
         setIsSavedGameLoaded(true);
     }, [puzzle, storageKey]);
+
+    useEffect(() => {
+        if (
+            !isSavedGameLoaded ||
+            gameStatus === "playing" ||
+            resultReported.current
+        ) {
+            return;
+        }
+
+        resultReported.current = true;
+        const startedAt = gameStartedAt.current ?? Date.now();
+        const attempts = gameStatus === "won"
+            ? solvedCategories.length + mistakes
+            : mistakes;
+
+        void fetch("/api/puzzles/result", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                puzzleId: puzzle.id,
+                clientGameId: getClientGameId(puzzle),
+                result: gameStatus,
+                attempts: Math.min(Math.max(attempts, 1), 4),
+                durationSeconds: Math.min(
+                    Math.max(Math.floor((Date.now() - startedAt) / 1000), 0),
+                    86400,
+                ),
+            }),
+        }).catch(() => {
+            resultReported.current = false;
+        });
+    }, [
+        gameStatus,
+        isSavedGameLoaded,
+        mistakes,
+        puzzle,
+        solvedCategories.length,
+    ]);
 
     useEffect(() => {
         if (!toast) return;
