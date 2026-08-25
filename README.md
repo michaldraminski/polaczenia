@@ -14,7 +14,7 @@ Aplikacja: **https://polaczenia.vercel.app/**
 - losowa kolejność słów,
 - zaznaczanie i sprawdzanie grup,
 - cztery próby,
-- podpowiedź „Brakuje jednego!”,
+- podpowiedź „Blisko!”,
 - poziomy trudności kategorii,
 - pokazanie rozwiązania po przegranej,
 - panel administratora,

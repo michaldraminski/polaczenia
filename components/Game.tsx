@@ -264,7 +264,7 @@ export default function Game({ puzzle }: GameProps) {
             }
 
             if (checkResult.result === "one-away") {
-                showToast("Brakuje jednego!");
+                showToast("Blisko!");
             } else {
                 showToast("Te słowa nie tworzą grupy.");
             }
