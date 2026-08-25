@@ -214,6 +214,8 @@ export async function PATCH(
                         ),
                     }),
                 ),
+            puzzle_last_edited_by_user_id:
+                user.id,
         },
     );
 

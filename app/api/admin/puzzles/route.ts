@@ -196,6 +196,9 @@ export async function POST(request: Request) {
                         ),
                     }),
                 ),
+            puzzle_created_by_user_id: user.id,
+            puzzle_last_edited_by_user_id:
+                user.id,
         });
 
     if (error) {

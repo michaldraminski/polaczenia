@@ -189,6 +189,8 @@ export function createMockClient() {
             title: params.puzzle_title,
             publication_date: params.puzzle_publication_date,
             status: params.puzzle_status,
+            created_by_user_id: params.puzzle_created_by_user_id ?? null,
+            last_edited_by_user_id: params.puzzle_last_edited_by_user_id ?? params.puzzle_created_by_user_id ?? null,
             created_at: now,
             updated_at: now,
           };
@@ -237,6 +239,7 @@ export function createMockClient() {
             title: params.puzzle_title,
             publication_date: params.puzzle_publication_date,
             status: params.puzzle_status,
+            last_edited_by_user_id: params.puzzle_last_edited_by_user_id ?? db.puzzles[puzzleIdx].last_edited_by_user_id ?? null,
             updated_at: now,
           };
 
@@ -289,6 +292,19 @@ export function createMockClient() {
     },
     // minimal auth placeholder
     auth: {
+      admin: {
+        async getUserById(userId: string) {
+          return {
+            data: {
+              user: {
+                id: userId,
+                email: `moderator-${userId.slice(0, 8)}@example.com`,
+              },
+            },
+            error: null,
+          };
+        },
+      },
       getUser() {
         return Promise.resolve({ data: null, error: null });
       },
