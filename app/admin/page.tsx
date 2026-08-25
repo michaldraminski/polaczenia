@@ -172,6 +172,14 @@ export default async function AdminPage() {
                                                     puzzle.publicationDate,
                                                 )}
                                             </p>
+
+                                            <p className="mt-1 text-stone-300">
+                                                Utworzył: {puzzle.createdBy ?? "Nieznany moderator"}
+                                            </p>
+
+                                            <p className="mt-1 text-stone-300">
+                                                Ostatnio edytował: {puzzle.lastEditedBy ?? "Nieznany moderator"}
+                                            </p>
                                         </div>
 
                                         <div className="flex gap-6 text-sm">
@@ -261,6 +269,14 @@ export default async function AdminPage() {
                                                 Data publikacji: {formatPublicationDate(
                                                     puzzle.publicationDate,
                                                 )}
+                                            </p>
+
+                                            <p className="mt-1 text-stone-300">
+                                                Utworzył: {puzzle.createdBy ?? "Nieznany moderator"}
+                                            </p>
+
+                                            <p className="mt-1 text-stone-300">
+                                                Ostatnio edytował: {puzzle.lastEditedBy ?? "Nieznany moderator"}
                                             </p>
                                         </div>
 

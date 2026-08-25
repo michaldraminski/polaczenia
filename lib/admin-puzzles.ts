@@ -10,6 +10,10 @@ export type AdminPuzzle = {
     status: "draft" | "scheduled" | "archived";
     categoryCount: number;
     wordCount: number;
+    createdByUserId: string | null;
+    lastEditedByUserId: string | null;
+    createdBy: string | null;
+    lastEditedBy: string | null;
 };
 
 type PuzzleRow = {
@@ -17,6 +21,8 @@ type PuzzleRow = {
     title: string;
     publication_date: string | null;
     status: string;
+    created_by_user_id: string | null;
+    last_edited_by_user_id: string | null;
 };
 
 type CategoryRow = {
@@ -36,6 +42,74 @@ function isPuzzleStatus(
         value === "scheduled" ||
         value === "archived"
     );
+}
+
+async function getModeratorDisplayName(
+    supabase: ReturnType<typeof createServerSupabaseClient>,
+    userId: string | null,
+): Promise<string | null> {
+    if (!userId) {
+        return null;
+    }
+
+    const adminClient = (
+        supabase.auth as unknown as {
+            admin?: {
+                getUserById?: (userId: string) => Promise<{
+                    data: {
+                        user?: {
+                            email?: string | null;
+                        } | null;
+                    };
+                    error: { message: string } | null;
+                }>;
+            };
+        }
+    ).admin;
+
+    if (!adminClient?.getUserById) {
+        return null;
+    }
+
+    const { data, error } =
+        await adminClient.getUserById(userId);
+
+    if (error || !data.user) {
+        return null;
+    }
+
+    return data.user.email ?? null;
+}
+
+async function getModeratorDisplayNames(
+    supabase: ReturnType<typeof createServerSupabaseClient>,
+    puzzleRows: PuzzleRow[],
+): Promise<Map<string, string | null>> {
+    const userIds = new Set(
+        puzzleRows
+            .flatMap((puzzle) => [
+                puzzle.created_by_user_id,
+                puzzle.last_edited_by_user_id,
+            ])
+            .filter(
+                (userId): userId is string =>
+                    typeof userId === "string",
+            ),
+    );
+
+    const displayNames = new Map<string, string | null>();
+
+    for (const userId of userIds) {
+        displayNames.set(
+            userId,
+            await getModeratorDisplayName(
+                supabase,
+                userId,
+            ),
+        );
+    }
+
+    return displayNames;
 }
 
 export async function archivePastPuzzles(): Promise<void> {
@@ -67,7 +141,7 @@ export async function getAdminPuzzles(): Promise<
     } = await supabase
         .from("puzzles")
         .select(
-            "id, title, publication_date, status",
+            "id, title, publication_date, status, created_by_user_id, last_edited_by_user_id",
         )
         .order("publication_date", {
             ascending: false,
@@ -84,6 +158,11 @@ export async function getAdminPuzzles(): Promise<
     }
 
     const puzzles = puzzleRows as PuzzleRow[];
+    const moderatorDisplayNames =
+        await getModeratorDisplayNames(
+            supabase,
+            puzzles,
+        );
 
     if (puzzles.length === 0) {
         return [];
@@ -166,6 +245,22 @@ export async function getAdminPuzzles(): Promise<
             categoryCount:
                 puzzleCategories.length,
             wordCount,
+            createdByUserId:
+                puzzle.created_by_user_id,
+            lastEditedByUserId:
+                puzzle.last_edited_by_user_id,
+            createdBy:
+                puzzle.created_by_user_id
+                    ? moderatorDisplayNames.get(
+                          puzzle.created_by_user_id,
+                      ) ?? null
+                    : null,
+            lastEditedBy:
+                puzzle.last_edited_by_user_id
+                    ? moderatorDisplayNames.get(
+                          puzzle.last_edited_by_user_id,
+                      ) ?? null
+                    : null,
         };
     });
 }
@@ -186,6 +281,10 @@ export type AdminPuzzleDetails = {
     title: string;
     publicationDate: string | null;
     status: "draft" | "scheduled" | "archived";
+    createdByUserId: string | null;
+    lastEditedByUserId: string | null;
+    createdBy: string | null;
+    lastEditedBy: string | null;
     categories: AdminPuzzleCategory[];
 };
 
@@ -194,6 +293,8 @@ type PuzzleDetailsRow = {
     title: string;
     publication_date: string | null;
     status: string;
+    created_by_user_id: string | null;
+    last_edited_by_user_id: string | null;
 };
 
 type CategoryDetailsRow = {
@@ -226,7 +327,7 @@ export async function getAdminPuzzle(
     } = await supabase
         .from("puzzles")
         .select(
-            "id, title, publication_date, status",
+            "id, title, publication_date, status, created_by_user_id, last_edited_by_user_id",
         )
         .eq("id", puzzleId)
         .maybeSingle();
@@ -248,6 +349,17 @@ export async function getAdminPuzzle(
             `Niepoprawny status planszy: ${puzzle.status}`,
         );
     }
+
+    const createdBy =
+        await getModeratorDisplayName(
+            supabase,
+            puzzle.created_by_user_id,
+        );
+    const lastEditedBy =
+        await getModeratorDisplayName(
+            supabase,
+            puzzle.last_edited_by_user_id,
+        );
 
     const {
         data: categoryData,
@@ -300,6 +412,11 @@ export async function getAdminPuzzle(
         publicationDate:
             puzzle.publication_date,
         status: puzzle.status,
+        createdByUserId: puzzle.created_by_user_id,
+        lastEditedByUserId:
+            puzzle.last_edited_by_user_id,
+        createdBy,
+        lastEditedBy,
         categories: categories.map((category) => {
             if (!isDifficulty(category.difficulty)) {
                 throw new Error(
