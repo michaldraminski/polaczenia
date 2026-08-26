@@ -28,6 +28,7 @@ import { WordBoard } from "./WordBoard";
 import { GameControls } from "./GameControls";
 import { GameStatusMessage } from "./GameStatusMessage";
 import { PuzzleFeedback } from "./PuzzleFeedback";
+import { GameModal } from "./GameModal";
 
 type GameProps = {
     puzzle: PublicPuzzle;
@@ -55,6 +56,7 @@ export default function Game({ puzzle }: GameProps) {
     const [fadingWordIds, setFadingWordIds] = useState<number[]>([]);
     const gameStartedAt = useRef<number | null>(null);
     const resultReported = useRef(false);
+    const [isGameModalOpen, setIsGameModalOpen] = useState(false);
 
     const storageKey = getStorageKey(puzzle);
 
@@ -276,11 +278,15 @@ export default function Game({ puzzle }: GameProps) {
                     if (
                         newSolvedCategories.length ===
                         puzzle.categoryCount
-                    ) {
+                        ) {
                         setGameStatus("won");
                         setMessage(
                             "Brawo! Wszystkie grupy zostały rozwiązane.",
                         );
+
+                        setTimeout(() => {
+                            setIsGameModalOpen(true);
+                        }, 350);
                     } else {
                         setMessage("Dobrze!");
                     }
@@ -302,6 +308,11 @@ export default function Game({ puzzle }: GameProps) {
                 setMessage(
                     "Koniec prób. Czy chcesz zobaczyć rozwiązanie?",
                 );
+
+                setTimeout(() => {
+                    setIsGameModalOpen(true);
+                }, 100);
+
                 setIsChecking(false);
                 return;
             }
@@ -396,8 +407,33 @@ export default function Game({ puzzle }: GameProps) {
                     message={message}
                 />
 
-                {gameStatus === "won" && (
-                    <PuzzleFeedback puzzle={puzzle} />
+                {isGameModalOpen && gameStatus === "won" && (
+                    <GameModal
+                        title="Gratulacje!"
+                        message="Wszystkie grupy zostały rozwiązane."
+                        type="success"
+                        onClose={() => setIsGameModalOpen(false)}
+                    >
+                        <PuzzleFeedback
+                            puzzle={puzzle}
+                            onSubmitted={() => setIsGameModalOpen(false)}
+                        />
+                    </GameModal>
+                    )}
+
+                    {isGameModalOpen && gameStatus === "lost" && (
+                    <GameModal
+                        title="Koniec gry"
+                        message="Niestety, wykorzystałeś wszystkie próby."
+                        type="failure"
+                        onClose={() => setIsGameModalOpen(false)}
+                    >
+                        {!isSolutionRevealed && (
+                        <p className="text-center text-stone-300">
+                            Możesz zamknąć to okno i zobaczyć poprawne rozwiązanie.
+                        </p>
+                        )}
+                    </GameModal>
                 )}
 
                 <footer className="mt-10 border-t border-stone-600 pt-5 text-center">

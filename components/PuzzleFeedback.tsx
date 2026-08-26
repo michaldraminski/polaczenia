@@ -10,10 +10,14 @@ import {
 import type { PublicPuzzle } from "../types/game";
 
 type PuzzleFeedbackProps = {
-    puzzle: PublicPuzzle;
+  puzzle: PublicPuzzle;
+  onSubmitted?: () => void;
 };
 
-export function PuzzleFeedback({ puzzle }: PuzzleFeedbackProps) {
+export function PuzzleFeedback({
+  puzzle,
+  onSubmitted,
+}: PuzzleFeedbackProps) {
     const [difficultyRating, setDifficultyRating] = useState(0);
     const [qualityRating, setQualityRating] = useState(0);
     const [submitted, setSubmitted] = useState(false);
@@ -58,6 +62,7 @@ export function PuzzleFeedback({ puzzle }: PuzzleFeedbackProps) {
 
             markFeedbackSubmitted(puzzle);
             setSubmitted(true);
+            onSubmitted?.();
         } catch (error) {
             setMessage(
                 error instanceof Error
