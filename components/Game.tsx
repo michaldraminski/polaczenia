@@ -134,9 +134,6 @@ export default function Game({ puzzle }: GameProps) {
 
         resultReported.current = true;
         const startedAt = gameStartedAt.current ?? Date.now();
-        const attempts = gameStatus === "won"
-            ? solvedCategories.length + mistakes
-            : mistakes;
 
         void fetch("/api/puzzles/result", {
             method: "POST",
@@ -145,7 +142,7 @@ export default function Game({ puzzle }: GameProps) {
                 puzzleId: puzzle.id,
                 clientGameId: getClientGameId(puzzle),
                 result: gameStatus,
-                attempts: Math.min(Math.max(attempts, 1), 4),
+                mistakes,
                 durationSeconds: Math.min(
                     Math.max(Math.floor((Date.now() - startedAt) / 1000), 0),
                     86400,

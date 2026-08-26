@@ -196,7 +196,7 @@ export default async function AdminPage() {
                                             <div className="mt-4 grid grid-cols-2 gap-3 text-sm text-stone-300 sm:grid-cols-6">
                                                 <p>Gry: <strong className="text-white">{puzzle.gameStats.games}</strong></p>
                                                 <p>Sukcesy: <strong className="text-white">{puzzle.gameStats.winRate === null ? "Brak danych" : `${puzzle.gameStats.winRate}%`}</strong></p>
-                                                <p>Śr. prób: <strong className="text-white">{puzzle.gameStats.averageAttempts ?? "Brak danych"}</strong></p>
+                                                <p>Śr. błędów: <strong className="text-white">{puzzle.gameStats.averageMistakes ?? "Brak danych"}</strong></p>
                                                 <p>Śr. czas: <strong className="text-white">{formatDuration(puzzle.gameStats.averageDurationSeconds)}</strong></p>
                                                 <p>Trudność: <strong className="text-white">{puzzle.gameStats.averageDifficulty ?? "Brak danych"}/5</strong></p>
                                                 <p>Jakość: <strong className="text-white">{puzzle.gameStats.averageQuality ?? "Brak danych"}/5 ({puzzle.gameStats.feedbackCount})</strong></p>
@@ -303,7 +303,7 @@ export default async function AdminPage() {
                                             <div className="mt-4 grid grid-cols-2 gap-3 text-sm text-stone-300 sm:grid-cols-6">
                                                 <p>Gry: <strong className="text-white">{puzzle.gameStats.games}</strong></p>
                                                 <p>Sukcesy: <strong className="text-white">{puzzle.gameStats.winRate === null ? "Brak danych" : `${puzzle.gameStats.winRate}%`}</strong></p>
-                                                <p>Śr. prób: <strong className="text-white">{puzzle.gameStats.averageAttempts ?? "Brak danych"}</strong></p>
+                                                <p>Śr. prób: <strong className="text-white">{puzzle.gameStats.averageMistakes ?? "Brak danych"}</strong></p>
                                                 <p>Śr. czas: <strong className="text-white">{formatDuration(puzzle.gameStats.averageDurationSeconds)}</strong></p>
                                                 <p>Trudność: <strong className="text-white">{puzzle.gameStats.averageDifficulty ?? "Brak danych"}/5</strong></p>
                                                 <p>Jakość: <strong className="text-white">{puzzle.gameStats.averageQuality ?? "Brak danych"}/5 ({puzzle.gameStats.feedbackCount})</strong></p>

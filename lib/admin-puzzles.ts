@@ -21,7 +21,7 @@ export type PuzzleGameStats = {
     games: number;
     wins: number;
     winRate: number | null;
-    averageAttempts: number | null;
+    averageMistakes: number | null;
     averageDurationSeconds: number | null;
     feedbackCount: number;
     averageDifficulty: number | null;
@@ -49,7 +49,7 @@ type WordRow = {
 type GameResultRow = {
     puzzle_id: number;
     result: "won" | "lost";
-    attempts: number;
+    mistakes: number;
     duration_seconds: number;
 };
 
@@ -63,7 +63,7 @@ const emptyPuzzleGameStats: PuzzleGameStats = {
     games: 0,
     wins: 0,
     winRate: null,
-    averageAttempts: null,
+    averageMistakes: null,
     averageDurationSeconds: null,
     feedbackCount: 0,
     averageDifficulty: null,
@@ -210,7 +210,7 @@ export async function getAdminPuzzles(): Promise<
 
     const { data: gameResultData, error: gameResultsError } = await supabase
         .from("game_results")
-        .select("puzzle_id, result, attempts, duration_seconds")
+        .select("puzzle_id, result, mistakes, duration_seconds")
         .in("puzzle_id", puzzleIds);
 
     if (gameResultsError) {
@@ -357,8 +357,8 @@ function getPuzzleGameStats(
         winRate: results.length > 0
             ? Math.round((wins / results.length) * 100)
             : null,
-        averageAttempts: results.length > 0
-            ? average(results.map((result) => result.attempts))
+        averageMistakes: results.length > 0
+            ? average(results.map((result) => result.mistakes))
             : null,
         averageDurationSeconds: results.length > 0
             ? average(results.map((result) => result.duration_seconds))

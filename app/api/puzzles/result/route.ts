@@ -4,7 +4,7 @@ type GameResultRequest = {
     puzzleId: number;
     clientGameId: string;
     result: "won" | "lost";
-    attempts: number;
+    mistakes: number;
     durationSeconds: number;
 };
 
@@ -16,7 +16,7 @@ function isGameResultRequest(
     }
 
     const request = value as Partial<GameResultRequest>;
-    const attempts = request.attempts;
+    const mistakes = request.mistakes;
     const durationSeconds = request.durationSeconds;
 
     if (
@@ -30,10 +30,10 @@ function isGameResultRequest(
     }
 
     if (
-        typeof attempts !== "number" ||
-        !Number.isInteger(attempts) ||
-        attempts < 1 ||
-        attempts > 4
+        typeof mistakes !== "number" ||
+        !Number.isInteger(mistakes) ||
+        mistakes < 0 ||
+        mistakes > 4
     ) {
         return false;
     }
@@ -70,7 +70,7 @@ export async function POST(request: Request) {
         result_puzzle_id: requestBody.puzzleId,
         result_client_game_id: requestBody.clientGameId,
         result_status: requestBody.result,
-        result_attempts: requestBody.attempts,
+        result_mistakes: requestBody.mistakes,
         result_duration_seconds: requestBody.durationSeconds,
     });
 
