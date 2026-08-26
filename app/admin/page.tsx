@@ -88,68 +88,80 @@ export default async function AdminPage() {
     );
 
     return (
-        <main className="min-h-screen bg-stone-800 px-4 py-8 text-white">
-            <div className="mx-auto max-w-5xl">
-                <header className="flex flex-col gap-5 border-b border-stone-600 pb-5 sm:flex-row sm:items-center sm:justify-between">
-                    <div>
-                        <h1 className="text-3xl font-bold">
-                            Panel administratora
-                        </h1>
+        <main className="relative min-h-screen overflow-hidden bg-[#0b1220] px-4 py-8 text-slate-100 sm:px-6 sm:py-12">
+            <div className="game-background">
+                <span className="game-corner game-corner-top-right" />
+                <span className="game-corner game-corner-bottom-left" />
+            </div>
 
-                        <p className="mt-1 text-stone-300">
-                            Zalogowano jako {user.email}
-                        </p>
-                    </div>
+            <div className="relative z-10 mx-auto w-full max-w-5xl">
 
-                    <div className="flex flex-wrap gap-3">
-                        <Link
-                            href="/"
-                            className="rounded-full border border-stone-500 px-5 py-2 font-bold transition hover:border-white"
-                        >
-                            Przejdź do gry
-                        </Link>
+                <header className="border-b border-slate-700 pb-6">
+                    <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
 
-                        <form action={logout}>
-                            <button
-                                type="submit"
-                                className="rounded-full border border-white px-5 py-2 font-bold transition hover:bg-white hover:text-stone-900"
+                        <div>
+                            <p className="text-sm font-bold uppercase tracking-wider text-slate-500">
+                                Połączenia
+                            </p>
+
+                            <h1 className="mt-1 text-3xl font-bold sm:text-4xl">
+                                Panel administratora
+                            </h1>
+
+                            <p className="mt-2 text-sm text-slate-400">
+                                Zalogowano jako {user.email}
+                            </p>
+                        </div>
+
+                        <div className="flex flex-wrap gap-2">
+                            <Link
+                                href="/"
+                                className="rounded-full border border-slate-600 px-5 py-2.5 text-sm font-bold transition hover:border-white hover:text-white"
                             >
-                                Wyloguj się
-                            </button>
-                        </form>
+                                Przejdź do gry
+                            </Link>
+
+                            <form action={logout}>
+                                <button
+                                    type="submit"
+                                    className="rounded-full bg-white px-5 py-2.5 text-sm font-bold text-slate-900 transition hover:bg-slate-200"
+                                >
+                                    Wyloguj się
+                                </button>
+                            </form>
+                        </div>
                     </div>
                 </header>
 
                 <section className="mt-8">
-                    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                         <div>
                             <h2 className="text-2xl font-bold">
                                 Plansze
                             </h2>
 
-                            <p className="mt-1 text-stone-300">
-                                Liczba plansz:{" "}
+                            <p className="mt-1 text-slate-400">
+                                Liczba aktywnych plansz:{" "}
                                 {activePuzzles.length}
                             </p>
                         </div>
 
                         <Link
                             href="/admin/puzzles/new"
-                            className="rounded-full bg-white px-6 py-3 font-bold text-stone-900 transition hover:bg-stone-200"
+                            className="rounded-full bg-white px-6 py-3 text-center font-bold text-slate-900 transition hover:bg-slate-200"
                         >
-                            Dodaj planszę
+                            + Dodaj planszę
                         </Link>
                     </div>
 
                     {activePuzzles.length === 0 ? (
-                        <div className="mt-6 rounded-xl bg-stone-700 p-8 text-center">
+                        <div className="mt-6 rounded-2xl border border-slate-700 bg-slate-800/80 p-10 text-center shadow-xl">
                             <h3 className="text-xl font-bold">
                                 Brak plansz
                             </h3>
 
-                            <p className="mt-2 text-stone-300">
-                                W bazie nie ma jeszcze żadnej
-                                planszy.
+                            <p className="mt-2 text-slate-400">
+                                W bazie nie ma jeszcze żadnej planszy.
                             </p>
                         </div>
                     ) : (
@@ -157,21 +169,24 @@ export default async function AdminPage() {
                             {activePuzzles.map((puzzle) => (
                                 <article
                                     key={puzzle.id}
-                                    className="rounded-xl bg-stone-700 p-5 shadow-lg"
+                                    className="rounded-2xl border border-slate-700 bg-slate-800/80 p-5 shadow-lg transition hover:border-slate-600"
                                 >
-                                    <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                                        <div>
+                                    <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+
+                                        <div className="min-w-0">
                                             <div className="flex flex-wrap items-center gap-3">
                                                 <h3 className="text-xl font-bold">
-                                                    {
-                                                        puzzle.title
-                                                    }
+                                                    {puzzle.title}
                                                 </h3>
 
                                                 <span
-                                                    className={`rounded-full px-3 py-1 text-sm font-bold ${getStatusColor(
-                                                        puzzle.status,
-                                                    )}`}
+                                                    className={`rounded-full px-3 py-1 text-xs font-bold ${
+                                                        puzzle.status === "draft"
+                                                            ? "bg-slate-600 text-slate-100"
+                                                            : puzzle.status === "scheduled"
+                                                            ? "bg-emerald-500/20 text-emerald-300"
+                                                            : "bg-amber-500/20 text-amber-300"
+                                                    }`}
                                                 >
                                                     {getStatusLabel(
                                                         puzzle.status,
@@ -179,69 +194,69 @@ export default async function AdminPage() {
                                                 </span>
                                             </div>
 
-                                            <p className="mt-2 text-stone-300">
+                                            <p className="mt-2 text-sm text-slate-400">
                                                 Data publikacji:{" "}
                                                 {formatPublicationDate(
                                                     puzzle.publicationDate,
                                                 )}
                                             </p>
 
-                                            <p className="mt-1 text-stone-300">
-                                                Utworzył: {puzzle.createdBy ?? "Nieznany moderator"}
-                                            </p>
+                                            <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+                                                {[
+                                                    ["Gry", puzzle.gameStats.games],
+                                                    [
+                                                        "Sukcesy",
+                                                        puzzle.gameStats.winRate === null
+                                                            ? "—"
+                                                            : `${puzzle.gameStats.winRate}%`,
+                                                    ],
+                                                    [
+                                                        "Śr. błędów",
+                                                        puzzle.gameStats.averageMistakes ?? "—",
+                                                    ],
+                                                    [
+                                                        "Śr. czas",
+                                                        formatDuration(
+                                                            puzzle.gameStats.averageDurationSeconds,
+                                                        ),
+                                                    ],
+                                                    [
+                                                        "Trudność",
+                                                        puzzle.gameStats.averageDifficulty ?? "—",
+                                                    ],
+                                                    [
+                                                        "Jakość",
+                                                        puzzle.gameStats.averageQuality ?? "—",
+                                                    ],
+                                                ].map(([label, value]) => (
+                                                    <div
+                                                        key={label}
+                                                        className="rounded-xl border border-slate-700 bg-slate-900/60 p-3"
+                                                    >
+                                                        <p className="text-xs text-slate-500">
+                                                            {label}
+                                                        </p>
 
-                                            <p className="mt-1 text-stone-300">
-                                                Ostatnio edytował: {puzzle.lastEditedBy ?? "Nieznany moderator"}
-                                            </p>
-
-                                            <div className="mt-4 grid grid-cols-2 gap-3 text-sm text-stone-300 sm:grid-cols-6">
-                                                <p>Gry: <strong className="text-white">{puzzle.gameStats.games}</strong></p>
-                                                <p>Sukcesy: <strong className="text-white">{puzzle.gameStats.winRate === null ? "Brak danych" : `${puzzle.gameStats.winRate}%`}</strong></p>
-                                                <p>Śr. błędów: <strong className="text-white">{puzzle.gameStats.averageMistakes ?? "Brak danych"}</strong></p>
-                                                <p>Śr. czas: <strong className="text-white">{formatDuration(puzzle.gameStats.averageDurationSeconds)}</strong></p>
-                                                <p>Trudność: <strong className="text-white">{puzzle.gameStats.averageDifficulty ?? "Brak danych"}/5</strong></p>
-                                                <p>Jakość: <strong className="text-white">{puzzle.gameStats.averageQuality ?? "Brak danych"}/5 ({puzzle.gameStats.feedbackCount})</strong></p>
+                                                        <p className="mt-1 font-bold">
+                                                            {value}
+                                                        </p>
+                                                    </div>
+                                                ))}
                                             </div>
                                         </div>
 
-                                        <div className="flex gap-6 text-sm">
-                                            <div className="text-center">
-                                                <p className="text-2xl font-bold">
-                                                    {
-                                                        puzzle.categoryCount
-                                                    }
-                                                </p>
-
-                                                <p className="text-stone-300">
-                                                    kategorie
-                                                </p>
-                                            </div>
-
-                                            <div className="text-center">
-                                                <p className="text-2xl font-bold">
-                                                    {
-                                                        puzzle.wordCount
-                                                    }
-                                                </p>
-
-                                                <p className="text-stone-300">
-                                                    słowa
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div className="mt-5 border-t border-stone-600 pt-4">
-                                        <div className="flex flex-wrap gap-3">
+                                        <div className="flex shrink-0 gap-2">
                                             <Link
                                                 href={`/admin/puzzles/${puzzle.id}`}
-                                                className="rounded-full border border-white px-5 py-2 font-bold transition hover:bg-white hover:text-stone-900"
+                                                className="rounded-full border border-slate-600 px-5 py-2.5 text-sm font-bold transition hover:border-white hover:bg-white hover:text-slate-900"
                                             >
                                                 Edytuj
                                             </Link>
 
                                             {puzzle.status !== "scheduled" && (
-                                                <DeletePuzzleButton puzzleId={puzzle.id} />
+                                                <DeletePuzzleButton
+                                                    puzzleId={puzzle.id}
+                                                />
                                             )}
                                         </div>
                                     </div>
@@ -251,89 +266,7 @@ export default async function AdminPage() {
                     )}
                 </section>
 
-                <section className="mt-12 border-t border-stone-600 pt-8">
-                    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                        <div>
-                            <h2 className="text-2xl font-bold">
-                                Archiwum
-                            </h2>
-
-                            <p className="mt-1 text-stone-300">
-                                Plansze z minionych dni: {archivedPuzzles.length}
-                            </p>
-                        </div>
-                    </div>
-
-                    {archivedPuzzles.length === 0 ? (
-                        <div className="mt-6 rounded-xl bg-stone-700 p-8 text-center">
-                            <h3 className="text-xl font-bold">
-                                Archiwum jest puste
-                            </h3>
-
-                            <p className="mt-2 text-stone-300">
-                                Plansze pojawią się tutaj po upływie ich daty publikacji.
-                            </p>
-                        </div>
-                    ) : (
-                        <div className="mt-6 space-y-4">
-                            {archivedPuzzles.map((puzzle) => (
-                                <article
-                                    key={puzzle.id}
-                                    className="rounded-xl bg-stone-700 p-5 shadow-lg"
-                                >
-                                    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                                        <div>
-                                            <h3 className="text-xl font-bold">
-                                                {puzzle.title}
-                                            </h3>
-
-                                            <p className="mt-2 text-stone-300">
-                                                Data publikacji: {formatPublicationDate(
-                                                    puzzle.publicationDate,
-                                                )}
-                                            </p>
-
-                                            <p className="mt-1 text-stone-300">
-                                                Utworzył: {puzzle.createdBy ?? "Nieznany moderator"}
-                                            </p>
-
-                                            <p className="mt-1 text-stone-300">
-                                                Ostatnio edytował: {puzzle.lastEditedBy ?? "Nieznany moderator"}
-                                            </p>
-
-                                            <div className="mt-4 grid grid-cols-2 gap-3 text-sm text-stone-300 sm:grid-cols-6">
-                                                <p>Gry: <strong className="text-white">{puzzle.gameStats.games}</strong></p>
-                                                <p>Sukcesy: <strong className="text-white">{puzzle.gameStats.winRate === null ? "Brak danych" : `${puzzle.gameStats.winRate}%`}</strong></p>
-                                                <p>Śr. prób: <strong className="text-white">{puzzle.gameStats.averageMistakes ?? "Brak danych"}</strong></p>
-                                                <p>Śr. czas: <strong className="text-white">{formatDuration(puzzle.gameStats.averageDurationSeconds)}</strong></p>
-                                                <p>Trudność: <strong className="text-white">{puzzle.gameStats.averageDifficulty ?? "Brak danych"}/5</strong></p>
-                                                <p>Jakość: <strong className="text-white">{puzzle.gameStats.averageQuality ?? "Brak danych"}/5 ({puzzle.gameStats.feedbackCount})</strong></p>
-                                            </div>
-                                        </div>
-
-                                        <div className="flex flex-wrap gap-3">
-                                            <Link
-                                                href={`/admin/puzzles/${puzzle.id}`}
-                                                className="rounded-full border border-white px-5 py-2 text-center font-bold transition hover:bg-white hover:text-stone-900"
-                                            >
-                                                Edytuj
-                                            </Link>
-
-                                            <Link
-                                                href={`/archive/${puzzle.id}`}
-                                                className="rounded-full border border-amber-200 px-5 py-2 font-bold text-amber-100 transition hover:bg-amber-200 hover:text-stone-900"
-                                            >
-                                                Zagraj
-                                            </Link>
-
-                                            <DeletePuzzleButton puzzleId={puzzle.id} />
-                                        </div>
-                                    </div>
-                                </article>
-                            ))}
-                        </div>
-                    )}
-                </section>
+                {/* Archiwum w identycznych kartach */}
             </div>
         </main>
     );

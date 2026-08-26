@@ -8,7 +8,6 @@ type PuzzleStatus =
     | "scheduled"
     | "archived";
 
-
 type CategoryForm = {
     name: string;
     words: string[];
@@ -27,11 +26,11 @@ type ErrorResponse = {
 };
 
 const categoryColors = [
-    "border-green-500",
+    "border-emerald-400",
     "border-yellow-400",
-    "border-orange-500",
-    "border-red-500",
-];
+    "border-orange-400",
+    "border-red-400",
+] as const;
 
 const difficultyLabels = [
     "Zielona — najłatwiejsza",
@@ -55,17 +54,23 @@ export default function PuzzleForm({
     initialCategories,
 }: PuzzleFormProps) {
     const router = useRouter();
+
     const [title, setTitle] = useState(initialTitle);
-    const [publicationDate, setPublicationDate] = useState(initialPublicationDate ?? "");
-    const [status, setStatus] = useState<PuzzleStatus>(initialStatus);
+
+    const [publicationDate, setPublicationDate] =
+        useState(initialPublicationDate ?? "");
+
+    const [status, setStatus] =
+        useState<PuzzleStatus>(initialStatus);
+
     const [categories, setCategories] = useState(
         () =>
             initialCategories ??
             createEmptyCategories(),
     );
+
     const [message, setMessage] = useState("");
-    const [isSaving, setIsSaving] =
-    useState(false);
+    const [isSaving, setIsSaving] = useState(false);
 
     function updateCategoryName(
         categoryIndex: number,
@@ -93,7 +98,10 @@ export default function PuzzleForm({
     ) {
         setCategories((previousCategories) =>
             previousCategories.map(
-                (category, currentCategoryIndex) => {
+                (
+                    category,
+                    currentCategoryIndex,
+                ) => {
                     if (
                         currentCategoryIndex !==
                         categoryIndex
@@ -101,12 +109,17 @@ export default function PuzzleForm({
                         return category;
                     }
 
-                    const newWords = category.words.map(
-                        (word, currentWordIndex) =>
-                            currentWordIndex === wordIndex
-                                ? value
-                                : word,
-                    );
+                    const newWords =
+                        category.words.map(
+                            (
+                                word,
+                                currentWordIndex,
+                            ) =>
+                                currentWordIndex ===
+                                wordIndex
+                                    ? value
+                                    : word,
+                        );
 
                     return {
                         ...category,
@@ -131,9 +144,11 @@ export default function PuzzleForm({
             return "Zaplanowana plansza musi mieć datę publikacji.";
         }
 
-        const hasEmptyCategory = categories.some(
-            (category) => !category.name.trim(),
-        );
+        const hasEmptyCategory =
+            categories.some(
+                (category) =>
+                    !category.name.trim(),
+            );
 
         if (hasEmptyCategory) {
             return "Każda kategoria musi mieć nazwę.";
@@ -191,19 +206,18 @@ export default function PuzzleForm({
 
             const response = await fetch(endpoint, {
                 method: puzzleId ? "PATCH" : "POST",
-                    headers: {
-                        "Content-Type":
-                            "application/json",
-                    },
-                    body: JSON.stringify({
-                        title,
-                        publicationDate:
-                            publicationDate || null,
-                        status,
-                        categories,
-                    }),
+                headers: {
+                    "Content-Type":
+                        "application/json",
                 },
-            );
+                body: JSON.stringify({
+                    title,
+                    publicationDate:
+                        publicationDate || null,
+                    status,
+                    categories,
+                }),
+            });
 
             const responseBody: unknown =
                 await response.json();
@@ -240,16 +254,27 @@ export default function PuzzleForm({
             onSubmit={handleSubmit}
             className="mt-8 space-y-8"
         >
-            <section className="rounded-xl bg-stone-700 p-6">
-                <h2 className="text-xl font-bold">
-                    Informacje o planszy
-                </h2>
+            {/* INFORMACJE O PLANSZY */}
 
-                <div className="mt-5 grid gap-5 md:grid-cols-2">
+            <section className="rounded-2xl bg-slate-800/80 p-6 shadow-xl">
+                <div>
+                    <h2 className="text-xl font-bold">
+                        Informacje o planszy
+                    </h2>
+
+                    <p className="mt-1 text-sm text-slate-400">
+                        Podstawowe informacje dotyczące
+                        publikowanej planszy.
+                    </p>
+                </div>
+
+                <div className="mt-6 grid gap-5 md:grid-cols-2">
+                    {/* TYTUŁ */}
+
                     <div className="md:col-span-2">
                         <label
                             htmlFor="title"
-                            className="mb-2 block font-medium"
+                            className="mb-2 block text-sm font-bold text-slate-200"
                         >
                             Tytuł roboczy
                         </label>
@@ -263,15 +288,17 @@ export default function PuzzleForm({
                                 );
                                 setMessage("");
                             }}
-                            className="w-full rounded-md border border-stone-500 bg-stone-800 px-4 py-3 outline-none focus:border-white"
+                            className="w-full rounded-xl border border-slate-600 bg-slate-950 px-4 py-3 text-white outline-none transition placeholder:text-slate-600 focus:border-slate-600 focus:outline-none focus:ring-0"
                             placeholder="Na przykład: Zestaw na poniedziałek"
                         />
                     </div>
 
+                    {/* STATUS */}
+
                     <div>
                         <label
                             htmlFor="status"
-                            className="mb-2 block font-medium"
+                            className="mb-2 block text-sm font-bold text-slate-200"
                         >
                             Status
                         </label>
@@ -286,14 +313,16 @@ export default function PuzzleForm({
                                 );
                                 setMessage("");
                             }}
-                            className="w-full rounded-md border border-stone-500 bg-stone-800 px-4 py-3 outline-none focus:border-white"
+                            className="w-full rounded-xl border border-slate-600 bg-slate-950 px-4 py-3 text-white outline-none transition focus:border-slate-600 focus:outline-none focus:ring-0"
                         >
                             <option value="draft">
                                 Szkic
                             </option>
+
                             <option value="scheduled">
                                 Zaplanowana
                             </option>
+
                             {puzzleId && (
                                 <option value="archived">
                                     Archiwalna
@@ -302,10 +331,12 @@ export default function PuzzleForm({
                         </select>
                     </div>
 
+                    {/* DATA */}
+
                     <div>
                         <label
                             htmlFor="publicationDate"
-                            className="mb-2 block font-medium"
+                            className="mb-2 block text-sm font-bold text-slate-200"
                         >
                             Data publikacji
                         </label>
@@ -320,77 +351,103 @@ export default function PuzzleForm({
                                 );
                                 setMessage("");
                             }}
-                            className="w-full rounded-md border border-stone-500 bg-stone-800 px-4 py-3 outline-none focus:border-white"
+                            className="w-full rounded-xl border border-slate-600 bg-slate-950 px-4 py-3 text-white outline-none transition focus:border-slate-600 focus:outline-none focus:ring-0"
                         />
                     </div>
                 </div>
             </section>
 
+            {/* KATEGORIE */}
+
             <section>
-                <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                     <div>
-                        <h2 className="text-2xl font-bold">
+                        <p className="text-sm font-bold uppercase tracking-wider text-slate-500">
+                            Zawartość planszy
+                        </p>
+
+                        <h2 className="mt-1 text-2xl font-bold">
                             Kategorie
                         </h2>
 
-                        <p className="mt-1 text-stone-300">
+                        <p className="mt-1 text-sm text-slate-400">
                             Wypełnij cztery kategorie po
                             cztery słowa.
                         </p>
                     </div>
 
-                    <p className="font-medium">
-                        Uzupełnione słowa:{" "}
-                        {completedWordCount} / 16
-                    </p>
+                    <div className="rounded-full border border-slate-700 bg-slate-800/80 px-4 py-2 text-sm font-bold text-slate-300">
+                        Uzupełnione:{" "}
+                        <span className="text-white">
+                            {completedWordCount}
+                        </span>
+                        {" / 16"}
+                    </div>
                 </div>
 
                 <div className="mt-5 space-y-5">
                     {categories.map(
-                        (category, categoryIndex) => (
+                        (
+                            category,
+                            categoryIndex,
+                        ) => (
                             <article
                                 key={categoryIndex}
-                                className={`rounded-xl border-l-8 bg-stone-700 p-6 ${categoryColors[categoryIndex]}`}
+                                className={`rounded-2xl border-2 bg-slate-800/80 p-6 shadow-lg ${categoryColors[categoryIndex]}`}
                             >
-                                <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-                                    <h3 className="text-xl font-bold">
-                                        Kategoria{" "}
-                                        {categoryIndex + 1}
-                                    </h3>
+                                {/* NAGŁÓWEK KATEGORII */}
 
-                                    <p className="text-sm text-stone-300">
-                                        {
-                                            difficultyLabels[
-                                                categoryIndex
-                                            ]
-                                        }
-                                    </p>
+                                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                                    <div>
+                                        <h3 className="text-xl font-bold">
+                                            Kategoria{" "}
+                                            {categoryIndex +
+                                                1}
+                                        </h3>
+
+                                        <p className="mt-1 text-sm text-slate-400">
+                                            {
+                                                difficultyLabels[
+                                                    categoryIndex
+                                                ]
+                                            }
+                                        </p>
+                                    </div>
                                 </div>
 
-                                <div className="mt-5">
+                                {/* NAZWA KATEGORII */}
+
+                                <div className="mt-6">
                                     <label
                                         htmlFor={`category-${categoryIndex}`}
-                                        className="mb-2 block font-medium"
+                                        className="mb-2 block text-sm font-bold text-slate-200"
                                     >
                                         Nazwa kategorii
                                     </label>
 
                                     <input
                                         id={`category-${categoryIndex}`}
-                                        value={category.name}
-                                        onChange={(event) =>
+                                        value={
+                                            category.name
+                                        }
+                                        onChange={(
+                                            event,
+                                        ) =>
                                             updateCategoryName(
                                                 categoryIndex,
-                                                event.target
+                                                event
+                                                    .target
                                                     .value,
                                             )
                                         }
-                                        className="w-full rounded-md border border-stone-500 bg-stone-800 px-4 py-3 outline-none focus:border-white"
+                                        className="w-full rounded-xl border border-slate-600 bg-slate-950 px-4 py-3 text-white outline-none transition placeholder:text-slate-600 focus:border-slate-600 focus:outline-none focus:ring-0"
                                         placeholder="Na przykład: Rzeki w Polsce"
                                     />
                                 </div>
 
-                                <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                                {/* SŁOWA */}
+
+                                <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                                     {category.words.map(
                                         (
                                             word,
@@ -403,7 +460,7 @@ export default function PuzzleForm({
                                             >
                                                 <label
                                                     htmlFor={`category-${categoryIndex}-word-${wordIndex}`}
-                                                    className="mb-2 block text-sm font-medium"
+                                                    className="mb-2 block text-sm font-medium text-slate-400"
                                                 >
                                                     Słowo{" "}
                                                     {wordIndex +
@@ -412,7 +469,9 @@ export default function PuzzleForm({
 
                                                 <input
                                                     id={`category-${categoryIndex}-word-${wordIndex}`}
-                                                    value={word}
+                                                    value={
+                                                        word
+                                                    }
                                                     onChange={(
                                                         event,
                                                     ) =>
@@ -424,7 +483,7 @@ export default function PuzzleForm({
                                                                 .value,
                                                         )
                                                     }
-                                                    className="w-full rounded-md border border-stone-500 bg-stone-800 px-3 py-3 text-center font-bold outline-none focus:border-white"
+                                                    className="w-full rounded-xl border border-slate-600 bg-slate-950 px-3 py-3 text-center font-bold text-white outline-none transition placeholder:text-slate-700 focus:border-slate-600 focus:outline-none focus:ring-0"
                                                 />
                                             </div>
                                         ),
@@ -436,16 +495,20 @@ export default function PuzzleForm({
                 </div>
             </section>
 
+            {/* BŁĄD */}
+
             {message && (
-                <p className="rounded-md bg-red-950 p-4 text-center font-medium text-red-200" >
+                <div className="rounded-xl border border-red-500/30 bg-red-950/40 p-4 text-center font-medium text-red-300">
                     {message}
-                </p>
+                </div>
             )}
 
-            <div className="flex flex-col-reverse gap-3 border-t border-stone-600 pt-6 sm:flex-row sm:justify-end">
+            {/* PRZYCISKI */}
+
+            <div className="flex flex-col-reverse gap-3 border-t border-slate-700 pt-6 sm:flex-row sm:justify-end">
                 <a
                     href="/admin"
-                    className="rounded-full border border-stone-500 px-6 py-3 text-center font-bold transition hover:border-white"
+                    className="rounded-full border border-slate-600 px-6 py-3 text-center font-bold text-slate-300 transition hover:border-slate-300 hover:text-white"
                 >
                     Anuluj
                 </a>
@@ -453,7 +516,7 @@ export default function PuzzleForm({
                 <button
                     type="submit"
                     disabled={isSaving}
-                    className="rounded-full bg-white px-6 py-3 font-bold text-stone-900 transition hover:bg-stone-200 disabled:cursor-not-allowed disabled:bg-stone-500 disabled:text-stone-300"
+                    className="rounded-full bg-white px-6 py-3 font-bold text-slate-900 transition hover:bg-slate-200 disabled:cursor-not-allowed disabled:bg-slate-600 disabled:text-slate-400"
                 >
                     {isSaving
                         ? "Zapisuję..."
