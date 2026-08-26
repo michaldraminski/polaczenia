@@ -371,12 +371,18 @@ export default function Game({ puzzle }: GameProps) {
     );
 
     return (
-        <main className="min-h-screen overflow-x-hidden bg-stone-800 px-2 py-5 text-white sm:px-4 sm:py-8">
+        <main className="relative min-h-screen overflow-hidden bg-[#0b1220] px-4 py-8 text-slate-100 sm:px-6 sm:py-12">
+
+            <div className="game-background">
+                <span className="game-corner game-corner-top-right" />
+                <span className="game-corner game-corner-bottom-left" />
+            </div>
+
             {toast && (
                 <Toast text={toast.text} visible={toastVisible} />
             )}
 
-            <div className="mx-auto w-full max-w-3xl">
+            <div className="relative z-10 mx-auto w-full max-w-2xl">
                 <GameHeader />
 
                 <SolvedCategories
