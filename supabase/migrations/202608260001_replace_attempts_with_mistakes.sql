@@ -1,7 +1,7 @@
 delete from public.game_results;
 
 alter table public.game_results
-drop constraint game_results_attempts_valid;
+drop constraint if exists game_results_attempts_valid;
 
 alter table public.game_results
 rename column attempts to mistakes;
@@ -10,7 +10,7 @@ alter table public.game_results
 add constraint game_results_mistakes_valid
 check (mistakes between 0 and 4);
 
-drop function public.record_game_result(
+drop function if exists public.record_game_result(
     bigint,
     text,
     text,
