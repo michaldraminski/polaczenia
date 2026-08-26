@@ -20,7 +20,6 @@ export function GameModal({
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    // Uruchamiamy animację po zamontowaniu komponentu
     const timer = setTimeout(() => {
       setIsVisible(true);
     }, 20);
@@ -41,10 +40,8 @@ export function GameModal({
 
   return (
     <div
-      className={`fixed inset-0 z-[100] flex items-center justify-center px-4 transition-opacity duration-300 ease-out ${
-        isVisible
-          ? "bg-black/60 opacity-100"
-          : "bg-black/0 opacity-0"
+      className={`fixed inset-0 z-[100] flex items-center justify-center bg-black/40 px-4 transition-opacity duration-300 ease-out ${
+        isVisible ? "opacity-100" : "opacity-0"
       }`}
       role="dialog"
       aria-modal="true"
@@ -56,7 +53,7 @@ export function GameModal({
       }}
     >
       <div
-        className={`w-full max-w-md rounded-2xl bg-stone-800 p-6 text-white shadow-2xl transition-all duration-300 ease-out ${
+        className={`w-full max-w-md rounded-2xl bg-white p-6 text-stone-900 shadow-2xl ring-1 ring-stone-200 transition-all duration-300 ease-out ${
           isVisible
             ? "translate-y-0 scale-100 opacity-100"
             : "translate-y-2 scale-95 opacity-0"
@@ -66,27 +63,27 @@ export function GameModal({
           <div
             className={`mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full text-3xl ${
               type === "success"
-                ? "bg-green-500/20 text-green-400"
+                ? "bg-green-100 text-green-700"
                 : type === "failure"
-                  ? "bg-red-500/20 text-red-400"
-                  : "bg-amber-500/20 text-amber-400"
+                ? "bg-red-100 text-red-700"
+                : "bg-amber-100 text-amber-700"
             }`}
           >
             {type === "success"
               ? "✓"
               : type === "failure"
-                ? "✕"
-                : "★"}
+              ? "✕"
+              : "★"}
           </div>
 
           <h2
             id="game-modal-title"
-            className="text-2xl font-bold"
+            className="text-2xl font-bold text-stone-900"
           >
             {title}
           </h2>
 
-          <p className="mt-3 text-stone-300">
+          <p className="mt-3 text-stone-600">
             {message}
           </p>
         </div>
@@ -100,7 +97,7 @@ export function GameModal({
         <button
           type="button"
           onClick={onClose}
-          className="mt-6 w-full rounded-full bg-white px-5 py-3 font-bold text-stone-900 transition hover:bg-stone-200"
+          className="mt-6 w-full rounded-xl bg-stone-900 px-5 py-3 font-bold text-white transition hover:bg-stone-700"
         >
           Zamknij
         </button>
