@@ -58,8 +58,9 @@ function formatDuration(seconds: number | null): string {
         return "Brak danych";
     }
 
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
+    const roundedSeconds = Math.round(seconds);
+    const minutes = Math.floor(roundedSeconds / 60);
+    const remainingSeconds = roundedSeconds % 60;
     return minutes > 0
         ? `${minutes} min ${remainingSeconds} s`
         : `${remainingSeconds} s`;
