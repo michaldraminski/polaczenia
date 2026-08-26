@@ -4,7 +4,28 @@ alter table public.game_results
 drop constraint if exists game_results_attempts_valid;
 
 alter table public.game_results
-rename column attempts to mistakes;
+drop constraint if exists game_results_mistakes_valid;
+
+do $$
+begin
+    if exists (
+        select 1
+        from information_schema.columns
+        where table_schema = 'public'
+          and table_name = 'game_results'
+          and column_name = 'attempts'
+    ) and not exists (
+        select 1
+        from information_schema.columns
+        where table_schema = 'public'
+          and table_name = 'game_results'
+          and column_name = 'mistakes'
+    ) then
+        alter table public.game_results
+        rename column attempts to mistakes;
+    end if;
+end;
+$$;
 
 alter table public.game_results
 add constraint game_results_mistakes_valid
