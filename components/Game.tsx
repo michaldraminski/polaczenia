@@ -57,7 +57,7 @@ export default function Game({ puzzle }: GameProps) {
     const gameStartedAt = useRef<number | null>(null);
     const resultReported = useRef(false);
     const [isGameModalOpen, setIsGameModalOpen] = useState(false);
-
+    const [failedGuesses, setFailedGuesses] = useState<string[]>([]);
     const storageKey = getStorageKey(puzzle);
 
     useEffect(() => {
@@ -186,7 +186,7 @@ export default function Game({ puzzle }: GameProps) {
             solvedCategories,
             mistakes,
             gameStatus,
-            isSolutionRevealed,
+            isSolutionRevealed
         };
 
         saveGame(puzzle, savedGame);
@@ -243,6 +243,12 @@ export default function Game({ puzzle }: GameProps) {
         );
     }
 
+    function getGuessKey(wordIds: number[]): string {
+        return [...wordIds]
+            .sort((a, b) => a - b)
+            .join("-");
+    }
+
     async function checkSelection() {
         if (gameStatus !== "playing" || isChecking) {
             return;
@@ -257,6 +263,22 @@ export default function Game({ puzzle }: GameProps) {
         setMessage("");
 
         try {
+            const normalizedGuess = [...selectedWordIds].sort((a, b) => a - b);
+            const guessKey = getGuessKey(selectedWordIds);
+
+            if (failedGuesses.includes(guessKey)) {
+                setSelectedWordIds([]);
+                showToast("Było!");
+                setIsChecking(false);
+                return;
+            }
+
+            if (failedGuesses.includes(guessKey)) {
+                setSelectedWordIds([]);
+                showToast("Było!");
+                setIsChecking(false);
+                return;
+            }
             const checkResult = checkSelectionLocally(
                 puzzle,
                 selectedWordIds,
@@ -298,6 +320,12 @@ export default function Game({ puzzle }: GameProps) {
             }
 
             const newMistakes = mistakes + 1;
+
+            setFailedGuesses((previous) =>
+                previous.includes(guessKey)
+                    ? previous
+                    : [...previous, guessKey],
+            );
 
             setMistakes(newMistakes);
             setSelectedWordIds([]);
