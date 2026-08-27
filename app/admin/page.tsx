@@ -8,6 +8,7 @@ import {
 import { createAuthServerClient } from "../../lib/supabase/auth-server";
 import DeletePuzzleButton from "../../components/DeletePuzzleButton";
 import { logout } from "./actions";
+import { getCurrentDateInPoland } from "../../lib/date";
 
 type PuzzleStatus =
     | "draft"
@@ -80,11 +81,24 @@ export default async function AdminPage() {
 
     await archivePastPuzzles();
     const puzzles = await getAdminPuzzles();
+    const today = getCurrentDateInPoland();
+
     const activePuzzles = puzzles.filter(
-        (puzzle) => puzzle.status !== "archived",
+    (puzzle) => puzzle.status !== "archived",
     );
+
+    // find today's scheduled puzzle (status scheduled + publicationDate === today)
+    const todaysPuzzle = activePuzzles.find(
+    (p) => p.status === "scheduled" && p.publicationDate === today,
+    );
+
+    // active list without the today's puzzle (so it won't appear twice)
+    const activeWithoutToday = activePuzzles.filter(
+    (p) => !todaysPuzzle || p.id !== todaysPuzzle.id,
+    );
+
     const archivedPuzzles = puzzles.filter(
-        (puzzle) => puzzle.status === "archived",
+    (puzzle) => puzzle.status === "archived",
     );
 
     return (
@@ -132,7 +146,62 @@ export default async function AdminPage() {
                         </div>
                     </div>
                 </header>
+                {todaysPuzzle && (
+                <section className="mt-8">
+                    <div>
+                    <h2 className="text-2xl font-bold">Obecna plansza</h2>    
+                    </div>
 
+                    <div className="mt-6">
+                    <article className="rounded-2xl border border-slate-700 bg-slate-800/80 p-5 shadow-lg">
+                        <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+                        <div className="min-w-0 flex-1">
+                            <div className="flex flex-wrap items-center gap-3">
+                            <h3 className="text-xl font-bold">{todaysPuzzle.title}</h3>
+                            <span className="rounded-full bg-emerald-500/20 px-3 py-1 text-xs font-bold text-emerald-300">
+                                Dzisiejsza
+                            </span>
+                            </div>
+
+                            <p className="mt-2 text-sm text-slate-400">
+                            Data publikacji: {formatPublicationDate(todaysPuzzle.publicationDate)}
+                            </p>
+
+                            <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+                            {[
+                                ["Gry", todaysPuzzle.gameStats.games],
+                                [
+                                "Sukcesy",
+                                todaysPuzzle.gameStats.winRate === null
+                                    ? "—"
+                                    : `${todaysPuzzle.gameStats.winRate}%`,
+                                ],
+                                ["Śr. błędów", todaysPuzzle.gameStats.averageMistakes ?? "—"],
+                                ["Śr. czas", formatDuration(todaysPuzzle.gameStats.averageDurationSeconds)],
+                                ["Trudność", todaysPuzzle.gameStats.averageDifficulty ?? "—"],
+                                ["Jakość", todaysPuzzle.gameStats.averageQuality ?? "—"],
+                            ].map(([label, value]) => (
+                                <div key={label} className="rounded-xl border border-slate-700 bg-slate-900/60 p-3">
+                                <p className="text-xs text-slate-500">{label}</p>
+                                <p className="mt-1 font-bold">{value}</p>
+                                </div>
+                            ))}
+                            </div>
+                        </div>
+
+                        <div className="flex shrink-0 gap-2">
+                            <Link
+                            href={`/admin/puzzles/${todaysPuzzle.id}`}
+                            className="rounded-full border border-slate-600 px-5 py-2.5 text-sm font-bold transition hover:border-white hover:bg-white hover:text-slate-900"
+                            >
+                            Edytuj
+                            </Link>
+                        </div>
+                        </div>
+                    </article>
+                    </div>
+                </section>
+                )}
                 <section className="mt-8">
                     <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                         <div>
@@ -141,8 +210,7 @@ export default async function AdminPage() {
                             </h2>
 
                             <p className="mt-1 text-slate-400">
-                                Liczba aktywnych plansz:{" "}
-                                {activePuzzles.length}
+                                Liczba aktywnych plansz: {activeWithoutToday.length}
                             </p>
                         </div>
 
@@ -166,7 +234,7 @@ export default async function AdminPage() {
                         </div>
                     ) : (
                         <div className="mt-6 space-y-4">
-                            {activePuzzles.map((puzzle) => (
+                            {activeWithoutToday.map((puzzle) => (
                                 <article
                                     key={puzzle.id}
                                     className="rounded-2xl border border-slate-700 bg-slate-800/80 p-5 shadow-lg transition hover:border-slate-600"
