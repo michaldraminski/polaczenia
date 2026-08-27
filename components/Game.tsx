@@ -352,6 +352,15 @@ export default function Game({ puzzle }: GameProps) {
         );
     }
 
+    function clearSelection() {
+        if (gameStatus !== "playing" || isChecking) {
+            return;
+        }
+
+        setSelectedWordIds([]);
+        setMessage("");
+    }
+
     const solvedWordIds = solvedCategories.flatMap(
         (category) =>
             category.words.map((word) => word.id),
@@ -405,6 +414,7 @@ export default function Game({ puzzle }: GameProps) {
                     isSolutionRevealed={isSolutionRevealed}
                     onShuffle={shuffleWords}
                     onCheck={checkSelection}
+                    onClearSelection={clearSelection}
                     onShowSolution={showSolution}
                 />
 

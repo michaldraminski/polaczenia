@@ -8,6 +8,7 @@ type GameControlsProps = {
     isSolutionRevealed: boolean;
     onShuffle: () => void;
     onCheck: () => void;
+    onClearSelection: () => void;
     onShowSolution: () => void;
 };
 
@@ -19,6 +20,7 @@ export function GameControls({
     isSolutionRevealed,
     onShuffle,
     onCheck,
+    onClearSelection,
     onShowSolution,
 }: GameControlsProps) {
     return (
@@ -45,45 +47,39 @@ export function GameControls({
 
             </div>
 
-            <p className="text-sm text-slate-400">
-                <span className="text-slate-500">
-                    Zaznaczono:
-                </span>{" "}
-                {selectedCount} / 4
-            </p>
-
-            <div className="flex w-full max-w-sm gap-3">
-
+            <div className="flex w-full max-w-lg gap-2">
                 <button
                     type="button"
                     onClick={onShuffle}
+                    disabled={gameStatus !== "playing" || isChecking}
+                    className="
+                        min-w-0 flex-1 rounded-lg border border-slate-600
+                        bg-transparent px-3 py-3 text-sm font-bold
+                        text-slate-300 transition-all
+                        hover:border-slate-400 hover:bg-white/[0.04] hover:text-white
+                        disabled:cursor-not-allowed disabled:opacity-30
+                    "
+                >
+                    ⤨&nbsp; POMIESZAJ
+                </button>
+
+                <button
+                    type="button"
+                    onClick={onClearSelection}
                     disabled={
+                        selectedCount === 0 ||
                         gameStatus !== "playing" ||
                         isChecking
                     }
                     className="
-                        min-w-0
-                        flex-1
-                        rounded-lg
-                        border
-                        border-slate-600
-                        bg-transparent
-                        px-3
-                        py-3
-                        text-sm
-                        font-bold
-                        text-slate-300
-                        transition-all
-                        hover:border-slate-400
-                        hover:bg-white/[0.04]
-                        hover:text-white
-                        disabled:cursor-not-allowed
-                        disabled:opacity-30
-                        sm:px-6
-                        sm:text-base
+                        min-w-0 flex-1 rounded-lg border border-slate-600
+                        bg-transparent px-3 py-3 text-sm font-bold
+                        text-slate-300 transition-all
+                        hover:border-slate-400 hover:bg-white/[0.04] hover:text-white
+                        disabled:cursor-not-allowed disabled:opacity-30
                     "
                 >
-                    ⤨&nbsp; POMIESZAJ
+                    ×&nbsp; ODZNACZ
                 </button>
 
                 <button
@@ -95,33 +91,16 @@ export function GameControls({
                         isChecking
                     }
                     className="
-                        min-w-0
-                        flex-1
-                        rounded-lg
-                        border
-                        border-[#d4af55]
-                        bg-[#d4af55]
-                        px-3
-                        py-3
-                        text-sm
-                        font-bold
-                        text-[#101827]
-                        transition-all
-                        hover:bg-[#e2c16d]
-                        hover:border-[#e2c16d]
-                        disabled:cursor-not-allowed
-                        disabled:border-slate-700
-                        disabled:bg-slate-700
-                        disabled:text-slate-500
-                        sm:px-6
-                        sm:text-base
+                        min-w-0 flex-1 rounded-lg border border-[#d4af55]
+                        bg-[#d4af55] px-3 py-3 text-sm font-bold
+                        text-[#101827] transition-all
+                        hover:border-[#e2c16d] hover:bg-[#e2c16d]
+                        disabled:cursor-not-allowed disabled:border-slate-700
+                        disabled:bg-slate-700 disabled:text-slate-500
                     "
                 >
-                    {isChecking
-                        ? "SPRAWDZAM..."
-                        : "SPRAWDŹ"}
+                    {isChecking ? "SPRAWDZAM..." : "SPRAWDŹ"}
                 </button>
-
             </div>
 
             {gameStatus === "lost" &&
