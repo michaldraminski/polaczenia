@@ -60,7 +60,7 @@ export function GameControls({
                         disabled:cursor-not-allowed disabled:opacity-30
                     "
                 >
-                    ⤨&nbsp; POMIESZAJ
+                    POMIESZAJ
                 </button>
 
                 <button
@@ -79,7 +79,7 @@ export function GameControls({
                         disabled:cursor-not-allowed disabled:opacity-30
                     "
                 >
-                    ×&nbsp; ODZNACZ
+                    ODZNACZ
                 </button>
 
                 <button
