@@ -200,49 +200,6 @@ export default async function AdminPage() {
                                                     puzzle.publicationDate,
                                                 )}
                                             </p>
-
-                                            <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-                                                {[
-                                                    ["Gry", puzzle.gameStats.games],
-                                                    [
-                                                        "Sukcesy",
-                                                        puzzle.gameStats.winRate === null
-                                                            ? "—"
-                                                            : `${puzzle.gameStats.winRate}%`,
-                                                    ],
-                                                    [
-                                                        "Śr. błędów",
-                                                        puzzle.gameStats.averageMistakes ?? "—",
-                                                    ],
-                                                    [
-                                                        "Śr. czas",
-                                                        formatDuration(
-                                                            puzzle.gameStats.averageDurationSeconds,
-                                                        ),
-                                                    ],
-                                                    [
-                                                        "Trudność",
-                                                        puzzle.gameStats.averageDifficulty ?? "—",
-                                                    ],
-                                                    [
-                                                        "Jakość",
-                                                        puzzle.gameStats.averageQuality ?? "—",
-                                                    ],
-                                                ].map(([label, value]) => (
-                                                    <div
-                                                        key={label}
-                                                        className="rounded-xl border border-slate-700 bg-slate-900/60 p-3"
-                                                    >
-                                                        <p className="text-xs text-slate-500">
-                                                            {label}
-                                                        </p>
-
-                                                        <p className="mt-1 font-bold">
-                                                            {value}
-                                                        </p>
-                                                    </div>
-                                                ))}
-                                            </div>
                                         </div>
 
                                         <div className="flex shrink-0 gap-2">
@@ -266,7 +223,99 @@ export default async function AdminPage() {
                     )}
                 </section>
 
-                {/* Archiwum w identycznych kartach */}
+                {archivedPuzzles.length > 0 && (
+                    <section className="mt-12 border-t border-slate-700 pt-8">
+                        <div>
+                        <h2 className="text-2xl font-bold">
+                            Archiwum
+                        </h2>
+
+                        <p className="mt-1 text-slate-400">
+                            Archiwalne plansze i ich statystyki
+                        </p>
+                        </div>
+
+                        <div className="mt-6 space-y-4">
+                        {archivedPuzzles.map((puzzle) => (
+                            <article
+                            key={puzzle.id}
+                            className="rounded-2xl border border-slate-700 bg-slate-800/60 p-5 shadow-lg"
+                            >
+                            <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+                                <div className="min-w-0 flex-1">
+                                <div className="flex flex-wrap items-center gap-3">
+                                    <h3 className="text-xl font-bold">
+                                    {puzzle.title}
+                                    </h3>
+
+                                    <span className="rounded-full bg-amber-500/20 px-3 py-1 text-xs font-bold text-amber-300">
+                                    Archiwalna
+                                    </span>
+                                </div>
+
+                                <p className="mt-2 text-sm text-slate-400">
+                                    Data publikacji:{" "}
+                                    {formatPublicationDate(puzzle.publicationDate)}
+                                </p>
+
+                                <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+                                    {[
+                                    ["Gry", puzzle.gameStats.games],
+                                    [
+                                        "Sukcesy",
+                                        puzzle.gameStats.winRate === null
+                                        ? "—"
+                                        : `${puzzle.gameStats.winRate}%`,
+                                    ],
+                                    [
+                                        "Śr. błędów",
+                                        puzzle.gameStats.averageMistakes ?? "—",
+                                    ],
+                                    [
+                                        "Śr. czas",
+                                        formatDuration(
+                                        puzzle.gameStats.averageDurationSeconds,
+                                        ),
+                                    ],
+                                    [
+                                        "Trudność",
+                                        puzzle.gameStats.averageDifficulty ?? "—",
+                                    ],
+                                    [
+                                        "Jakość",
+                                        puzzle.gameStats.averageQuality ?? "—",
+                                    ],
+                                    ].map(([label, value]) => (
+                                    <div
+                                        key={label}
+                                        className="rounded-xl border border-slate-700 bg-slate-900/60 p-3"
+                                    >
+                                        <p className="text-xs text-slate-500">
+                                        {label}
+                                        </p>
+
+                                        <p className="mt-1 font-bold">
+                                        {value}
+                                        </p>
+                                    </div>
+                                    ))}
+                                </div>
+                                </div>
+
+                                <div className="flex shrink-0 gap-2">
+                                <Link
+                                    href={`/admin/puzzles/${puzzle.id}`}
+                                    className="rounded-full border border-slate-600 px-5 py-2.5 text-sm font-bold transition hover:border-white hover:bg-white hover:text-slate-900"
+                                >
+                                    Edytuj
+                                </Link>
+                                </div>
+                            </div>
+                            </article>
+                        ))}
+                        </div>
+                    </section>
+                    )}
             </div>
         </main>
     );
