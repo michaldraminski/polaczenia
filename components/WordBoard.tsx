@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from "react";
 import type { PublicPuzzle } from "../types/game";
 
 type WordBoardProps = {
@@ -7,6 +8,75 @@ type WordBoardProps = {
     fadingWordIds: number[];
     onToggleWord: (wordId: number) => void;
 };
+
+function WordText({
+    value,
+    isSelected,
+}: {
+    value: string;
+    isSelected: boolean;
+}) {
+    const containerRef = useRef<HTMLSpanElement>(null);
+    const textRef = useRef<HTMLSpanElement>(null);
+
+    const [fontSize, setFontSize] = useState(16);
+
+    useEffect(() => {
+        const container = containerRef.current;
+        const text = textRef.current;
+
+        if (!container || !text) return;
+
+        const resizeText = () => {
+            // Zaczynamy od normalnego rozmiaru
+            const maxFontSize = window.innerWidth >= 640 ? 16 : 15;
+            const minFontSize = 8;
+
+            let size = maxFontSize;
+
+            text.style.fontSize = `${size}px`;
+
+            while (
+                text.scrollWidth > container.clientWidth &&
+                size > minFontSize
+            ) {
+                size -= 0.5;
+                text.style.fontSize = `${size}px`;
+            }
+
+            setFontSize(size);
+        };
+
+        resizeText();
+
+        const observer = new ResizeObserver(resizeText);
+        observer.observe(container);
+
+        window.addEventListener("resize", resizeText);
+
+        return () => {
+            observer.disconnect();
+            window.removeEventListener("resize", resizeText);
+        };
+    }, [value]);
+
+    return (
+        <span
+            ref={containerRef}
+            className="block min-w-0 max-w-full overflow-hidden whitespace-nowrap"
+        >
+            <span
+                ref={textRef}
+                className="block whitespace-nowrap font-bold leading-tight"
+                style={{
+                    fontSize: `${fontSize}px`,
+                }}
+            >
+                {value}
+            </span>
+        </span>
+    );
+}
 
 export function WordBoard({
     words,
@@ -21,20 +91,6 @@ export function WordBoard({
                 const isSelected = selectedWordIds.includes(word.id);
                 const isFading = fadingWordIds.includes(word.id);
 
-                // dynamic font size: krótkie słowa większe, dłuższe mniejsze
-                const fontSizeClass =
-                    word.value.length <= 3
-                        ? "text-lg sm:text-xl"
-                        : word.value.length <= 14
-                        ? "text-sm sm:text-base"
-                        : "text-sm sm:text-[0.92rem]";
-
-                // jeśli fraza zawiera spację — pozwól łamać tylko przy spacjach
-                // jeśli to pojedynczy bardzo długi token — pozwól łamać wewnątrz słowa
-                const breakClass = word.value.includes(" ")
-                    ? "break-normal" // łam tylko przy spacjach
-                    : "break-words"; // łam w razie potrzeby wewnątrz długiego słowa
-
                 return (
                     <button
                         key={word.id}
@@ -45,22 +101,19 @@ export function WordBoard({
                             flex
                             min-h-[72px]
                             min-w-0
+                            w-full
                             items-center
                             justify-center
+                            overflow-hidden
                             rounded-lg
                             border
-                            px-3
+                            px-2
                             py-2
                             text-center
-                            ${fontSizeClass}
-                            font-bold
-                            leading-normal
-                            whitespace-normal
-                            ${breakClass}
                             transition-all
                             duration-150
                             sm:min-h-[80px]
-                            sm:px-4
+                            sm:px-3
                             sm:py-3
 
                             ${
@@ -93,7 +146,10 @@ export function WordBoard({
                             disabled:cursor-not-allowed
                         `}
                     >
-                        {word.value}
+                        <WordText
+                            value={word.value}
+                            isSelected={isSelected}
+                        />
                     </button>
                 );
             })}
