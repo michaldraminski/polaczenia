@@ -3,21 +3,36 @@ import { testPuzzle } from "../../lib/crossword/testPuzzle";
 
 export default function CrosswordPage() {
     return (
-        <main className="min-h-screen flex flex-col items-center p-6 gap-8">
-            <div className="text-center">
-                <h1 className="text-3xl font-bold">
-                    {testPuzzle.title}
-                </h1>
-
-                <p className="text-sm text-gray-500 mt-1">
-                    Autor: {testPuzzle.author}
-                </p>
+        <main className="relative min-h-screen overflow-hidden bg-[#0b1220] px-4 py-8 text-slate-100 sm:px-6 sm:py-12">
+            <div className="game-background">
+                <span className="game-corner game-corner-top-right" />
+                <span className="game-corner game-corner-bottom-left" />
             </div>
 
-            <CrosswordBoard 
-                grid={testPuzzle.grid}
-                entries={testPuzzle.entries}
-            />
+            <div className="relative z-10 mx-auto w-full max-w-2xl">
+                <header className="mb-9 text-center sm:mb-11">
+                    <div className="game-logo-mark">
+                        <span className="game-logo-dot" />
+                    </div>
+
+                    <h1 className="text-4xl font-extrabold tracking-[-0.045em] text-white sm:text-5xl">
+                        MINI KRZYŻÓWKA
+                    </h1>
+
+                    <div className="mx-auto mt-5 h-px w-14 bg-[#d4af55]/70" />
+
+                    <p className="mx-auto mt-4 max-w-md text-sm leading-6 text-slate-400 sm:text-base">
+                        {testPuzzle.title}
+                        <br />
+                        Autor: {testPuzzle.author}
+                    </p>
+                </header>
+
+                <CrosswordBoard
+                    grid={testPuzzle.grid}
+                    entries={testPuzzle.entries}
+                />
+            </div>
         </main>
     );
 }

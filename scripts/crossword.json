@@ -1,0 +1,206 @@
+{
+  "size": 5,
+  "grid": [
+    [
+      "#",
+      "n",
+      "o",
+      "w",
+      "a"
+    ],
+    [
+      "p",
+      "o",
+      "b",
+      "y",
+      "t"
+    ],
+    [
+      "o",
+      "s",
+      "a",
+      "k",
+      "a"
+    ],
+    [
+      "l",
+      "e",
+      "w",
+      "a",
+      "k"
+    ],
+    [
+      "o",
+      "k",
+      "a",
+      "z",
+      "#"
+    ]
+  ],
+  "words": [
+    {
+      "word": "nowa",
+      "row": 0,
+      "col": 1,
+      "length": 4,
+      "direction": "horizontal",
+      "clue": "Brak definicji"
+    },
+    {
+      "word": "pobyt",
+      "row": 1,
+      "col": 0,
+      "length": 5,
+      "direction": "horizontal",
+      "clue": "Brak definicji"
+    },
+    {
+      "word": "osaka",
+      "row": 2,
+      "col": 0,
+      "length": 5,
+      "direction": "horizontal",
+      "clue": "Brak definicji"
+    },
+    {
+      "word": "lewak",
+      "row": 3,
+      "col": 0,
+      "length": 5,
+      "direction": "horizontal",
+      "clue": "Brak definicji"
+    },
+    {
+      "word": "okaz",
+      "row": 4,
+      "col": 0,
+      "length": 4,
+      "direction": "horizontal",
+      "clue": "Brak definicji"
+    },
+    {
+      "word": "polo",
+      "row": 1,
+      "col": 0,
+      "length": 4,
+      "direction": "vertical",
+      "clue": "Brak definicji"
+    },
+    {
+      "word": "nosek",
+      "row": 0,
+      "col": 1,
+      "length": 5,
+      "direction": "vertical",
+      "clue": "Brak definicji"
+    },
+    {
+      "word": "obawa",
+      "row": 0,
+      "col": 2,
+      "length": 5,
+      "direction": "vertical",
+      "clue": "Brak definicji"
+    },
+    {
+      "word": "wykaz",
+      "row": 0,
+      "col": 3,
+      "length": 5,
+      "direction": "vertical",
+      "clue": "Brak definicji"
+    },
+    {
+      "word": "atak",
+      "row": 0,
+      "col": 4,
+      "length": 4,
+      "direction": "vertical",
+      "clue": "Brak definicji"
+    }
+  ],
+  "horizontal": [
+    {
+      "word": "nowa",
+      "row": 0,
+      "col": 1,
+      "length": 4,
+      "direction": "horizontal",
+      "clue": "Brak definicji"
+    },
+    {
+      "word": "pobyt",
+      "row": 1,
+      "col": 0,
+      "length": 5,
+      "direction": "horizontal",
+      "clue": "Brak definicji"
+    },
+    {
+      "word": "osaka",
+      "row": 2,
+      "col": 0,
+      "length": 5,
+      "direction": "horizontal",
+      "clue": "Brak definicji"
+    },
+    {
+      "word": "lewak",
+      "row": 3,
+      "col": 0,
+      "length": 5,
+      "direction": "horizontal",
+      "clue": "Brak definicji"
+    },
+    {
+      "word": "okaz",
+      "row": 4,
+      "col": 0,
+      "length": 4,
+      "direction": "horizontal",
+      "clue": "Brak definicji"
+    }
+  ],
+  "vertical": [
+    {
+      "word": "polo",
+      "row": 1,
+      "col": 0,
+      "length": 4,
+      "direction": "vertical",
+      "clue": "Brak definicji"
+    },
+    {
+      "word": "nosek",
+      "row": 0,
+      "col": 1,
+      "length": 5,
+      "direction": "vertical",
+      "clue": "Brak definicji"
+    },
+    {
+      "word": "obawa",
+      "row": 0,
+      "col": 2,
+      "length": 5,
+      "direction": "vertical",
+      "clue": "Brak definicji"
+    },
+    {
+      "word": "wykaz",
+      "row": 0,
+      "col": 3,
+      "length": 5,
+      "direction": "vertical",
+      "clue": "Brak definicji"
+    },
+    {
+      "word": "atak",
+      "row": 0,
+      "col": 4,
+      "length": 4,
+      "direction": "vertical",
+      "clue": "Brak definicji"
+    }
+  ]
+}
