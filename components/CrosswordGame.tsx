@@ -25,8 +25,8 @@ type Position = { row: number; col: number };
 export function CrosswordGame({ crosswordData }: { crosswordData: CrosswordData }) {
     // Inicjalizuj plan rozwiązania
     const initialGrid: GridCell[][] = useMemo(() => {
-        const grid: GridCell[][] = crosswordData.grid.map((row, rowIdx) =>
-            row.map((cell, colIdx) => ({
+        const grid: GridCell[][] = crosswordData.grid.map((row) =>
+            row.map((cell) => ({
                 value: cell === "#" ? "#" : "",
                 wordIndices: [],
             }))
@@ -94,6 +94,13 @@ export function CrosswordGame({ crosswordData }: { crosswordData: CrosswordData 
 
         return null;
     };
+
+    const isCellInActiveLine = (row: number, col: number, value: string) =>
+        selectedCell !== null &&
+        value !== "#" &&
+        (selectedDirection === "horizontal"
+            ? row === selectedCell.row
+            : col === selectedCell.col);
 
     const handleCellClick = (row: number, col: number) => {
         if (grid[row][col].value === "#") return;
@@ -322,7 +329,7 @@ export function CrosswordGame({ crosswordData }: { crosswordData: CrosswordData 
     };
 
     return (
-        <div className="flex flex-col gap-4 lg:flex-row lg:gap-6 h-screen lg:h-[calc(100vh-200px)]">
+        <div className="flex w-full flex-col gap-4 lg:flex-row lg:items-start lg:gap-6">
             {/* Plansza */}
             <div className="flex-1 flex items-center justify-center min-h-[60vh] lg:min-h-full">
                 <div className="rounded-lg border border-[#d4af55]/30 bg-slate-900 p-2 shadow-2xl lg:p-4">
@@ -351,14 +358,15 @@ export function CrosswordGame({ crosswordData }: { crosswordData: CrosswordData 
                                                 : "bg-slate-800 border-slate-600 text-white focus:bg-blue-700 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-[#d4af55]"
                                         } ${
                                             selectedCell?.row === rowIdx && selectedCell?.col === colIdx
-                                                ? "ring-2 ring-[#d4af55]"
+                                                ? "relative z-10 !border-2 !border-[#d4af55]"
                                                 : ""
                                         } ${
                                             highlightedWords.size > 0 &&
-                                            cell.wordIndices.some((w) => highlightedWords.has(w)) &&
-                                            cell.value !== "#"
-                                                ? "bg-blue-900/50"
-                                                : ""
+                                            cell.wordIndices.some((wordIdx) => highlightedWords.has(wordIdx))
+                                                ? "!bg-blue-900/70 !border-blue-400"
+                                                : isCellInActiveLine(rowIdx, colIdx, cell.value)
+                                                    ? "!bg-amber-900 !border-amber-400"
+                                                    : ""
                                         }`}
                                     />
                                     {getFirstWordNumberAtCell(rowIdx, colIdx) && (
@@ -374,10 +382,10 @@ export function CrosswordGame({ crosswordData }: { crosswordData: CrosswordData 
             </div>
 
             {/* Wskazówki */}
-            <div className="flex flex-col gap-3 w-full lg:w-80 lg:gap-4 overflow-y-auto lg:pr-2">
+            <div className="flex w-full flex-col gap-3 lg:w-80 lg:gap-4 lg:pr-2">
                 {/* Wskazówki poziome */}
                 <div>
-                    <h2 className="mb-2 text-sm font-bold text-[#d4af55] lg:mb-3 lg:text-base sticky top-0 bg-slate-900 py-1">
+                    <h2 className="mb-2 text-sm font-bold text-[#d4af55] lg:mb-3 lg:text-base">
                         POZIOMO
                     </h2>
                     <div className="space-y-1">
@@ -399,7 +407,7 @@ export function CrosswordGame({ crosswordData }: { crosswordData: CrosswordData 
 
                 {/* Wskazówki pionowe */}
                 <div>
-                    <h2 className="mb-2 text-sm font-bold text-[#d4af55] lg:mb-3 lg:text-base sticky top-12 bg-slate-900 py-1">
+                    <h2 className="mb-2 text-sm font-bold text-[#d4af55] lg:mb-3 lg:text-base">
                         PIONOWO
                     </h2>
                     <div className="space-y-1">

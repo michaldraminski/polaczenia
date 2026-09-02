@@ -17,7 +17,7 @@ const typedCrosswordData: CrosswordData = {
 
 export default function CrosswordPage() {
     return (
-        <main className="relative min-h-screen overflow-hidden bg-[#0b1220] px-4 py-8 text-slate-100 sm:px-6 sm:py-12">
+        <main className="relative min-h-screen overflow-x-hidden bg-[#0b1220] px-4 py-8 text-slate-100 sm:px-6 sm:py-12">
             <div className="game-background">
                 <span className="game-corner game-corner-top-right" />
                 <span className="game-corner game-corner-bottom-left" />
