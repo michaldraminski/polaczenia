@@ -3,204 +3,120 @@
   "grid": [
     [
       "#",
-      "n",
       "o",
-      "w",
-      "a"
+      "p",
+      "e",
+      "l"
     ],
     [
+      "s",
       "p",
       "o",
-      "b",
-      "y",
-      "t"
-    ],
-    [
-      "o",
-      "s",
-      "a",
-      "k",
+      "r",
       "a"
     ],
     [
-      "l",
-      "e",
-      "w",
-      "a",
-      "k"
-    ],
-    [
+      "t",
       "o",
       "k",
+      "i",
+      "o"
+    ],
+    [
       "a",
-      "z",
+      "n",
+      "e",
+      "k",
+      "s"
+    ],
+    [
+      "w",
+      "a",
+      "r",
+      "a",
       "#"
     ]
   ],
   "words": [
     {
-      "word": "nowa",
+      "word": "opel",
       "row": 0,
       "col": 1,
       "length": 4,
       "direction": "horizontal",
-      "clue": "Brak definicji"
+      "clue": "niemiecka marka samochodów"
     },
     {
-      "word": "pobyt",
+      "word": "spora",
       "row": 1,
       "col": 0,
       "length": 5,
       "direction": "horizontal",
-      "clue": "Brak definicji"
+      "clue": "komórka służąca do bezpłciowego rozmnażania się roślin niższych"
     },
     {
-      "word": "osaka",
+      "word": "tokio",
       "row": 2,
       "col": 0,
       "length": 5,
       "direction": "horizontal",
-      "clue": "Brak definicji"
+      "clue": "stolica Japonii"
     },
     {
-      "word": "lewak",
+      "word": "aneks",
       "row": 3,
       "col": 0,
       "length": 5,
       "direction": "horizontal",
-      "clue": "Brak definicji"
+      "clue": "dodatek, uzupełnienie, załącznik"
     },
     {
-      "word": "okaz",
+      "word": "wara",
       "row": 4,
       "col": 0,
       "length": 4,
       "direction": "horizontal",
-      "clue": "Brak definicji"
+      "clue": "okrzyk wyrażający zakaz zbliżania się do kogoś"
     },
     {
-      "word": "polo",
+      "word": "staw",
       "row": 1,
       "col": 0,
       "length": 4,
       "direction": "vertical",
-      "clue": "Brak definicji"
+      "clue": "śródlądowy zbiornik wodny"
     },
     {
-      "word": "nosek",
+      "word": "opona",
       "row": 0,
       "col": 1,
       "length": 5,
       "direction": "vertical",
-      "clue": "Brak definicji"
+      "clue": "zewnętrzna, gumowa część koła pojazdu"
     },
     {
-      "word": "obawa",
+      "word": "poker",
       "row": 0,
       "col": 2,
       "length": 5,
       "direction": "vertical",
-      "clue": "Brak definicji"
+      "clue": "hazardowa gra w karty"
     },
     {
-      "word": "wykaz",
+      "word": "erika",
       "row": 0,
       "col": 3,
       "length": 5,
       "direction": "vertical",
-      "clue": "Brak definicji"
+      "clue": "żona zamordowanego amerykańskiego aktywisty politycznego"
     },
     {
-      "word": "atak",
+      "word": "laos",
       "row": 0,
       "col": 4,
       "length": 4,
       "direction": "vertical",
-      "clue": "Brak definicji"
-    }
-  ],
-  "horizontal": [
-    {
-      "word": "nowa",
-      "row": 0,
-      "col": 1,
-      "length": 4,
-      "direction": "horizontal",
-      "clue": "Brak definicji"
-    },
-    {
-      "word": "pobyt",
-      "row": 1,
-      "col": 0,
-      "length": 5,
-      "direction": "horizontal",
-      "clue": "Brak definicji"
-    },
-    {
-      "word": "osaka",
-      "row": 2,
-      "col": 0,
-      "length": 5,
-      "direction": "horizontal",
-      "clue": "Brak definicji"
-    },
-    {
-      "word": "lewak",
-      "row": 3,
-      "col": 0,
-      "length": 5,
-      "direction": "horizontal",
-      "clue": "Brak definicji"
-    },
-    {
-      "word": "okaz",
-      "row": 4,
-      "col": 0,
-      "length": 4,
-      "direction": "horizontal",
-      "clue": "Brak definicji"
-    }
-  ],
-  "vertical": [
-    {
-      "word": "polo",
-      "row": 1,
-      "col": 0,
-      "length": 4,
-      "direction": "vertical",
-      "clue": "Brak definicji"
-    },
-    {
-      "word": "nosek",
-      "row": 0,
-      "col": 1,
-      "length": 5,
-      "direction": "vertical",
-      "clue": "Brak definicji"
-    },
-    {
-      "word": "obawa",
-      "row": 0,
-      "col": 2,
-      "length": 5,
-      "direction": "vertical",
-      "clue": "Brak definicji"
-    },
-    {
-      "word": "wykaz",
-      "row": 0,
-      "col": 3,
-      "length": 5,
-      "direction": "vertical",
-      "clue": "Brak definicji"
-    },
-    {
-      "word": "atak",
-      "row": 0,
-      "col": 4,
-      "length": 4,
-      "direction": "vertical",
-      "clue": "Brak definicji"
+      "clue": "państwo w Azji ze stolicą w Wientianie"
     }
   ]
 }

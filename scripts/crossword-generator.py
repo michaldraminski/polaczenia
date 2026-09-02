@@ -1,7 +1,9 @@
 import json
 import random
 import argparse
+import re
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Optional
 import requests
 from bs4 import BeautifulSoup
@@ -58,42 +60,255 @@ class Slot:
 # ============================================================
 # WCZYTYWANIE SŁÓW
 # ============================================================
-def get_clue(word):
-    """
-    Pobiera definicję słowa z DictionaryAPI.dev (polski).
-    Zwraca krótką wskazówkę krzyżówkową.
-    """
+def _clean_clue(text, word=None):
+    """Czyści definicję i usuwa techniczne elementy ze źródła."""
+    if not text:
+        return None
 
-    url = f"https://api.dictionaryapi.dev/api/v2/entries/pl/{word}"
+    text = BeautifulSoup(text, "html.parser").get_text(" ", strip=True)
+    text = re.sub(r"\s+", " ", text).strip()
+
+    # Nie chcemy przypadkowo zapisać elementów nawigacji strony.
+    bad_exact = {
+        "komentarze",
+        "brak",
+        "brak definicji",
+        "więcej",
+        "lista",
+        "słownik języka polskiego sjp",
+        "info",
+    }
+    if text.lower() in bad_exact:
+        return None
+
+    # Jeśli tekst zawiera numery (np "1. definicja 2. inna"), bierz tylko pierwszą
+    match = re.match(r"^(\d+\.\s*)?(.+?)(?:\s*\d+\.|$)", text)
+    if match:
+        text = match.group(2).strip()
+
+    # Usuń numerację typu "1. " lub "(1)" z początku i końca
+    text = re.sub(r"^\d+\.\s*", "", text).strip()
+    text = re.sub(r"^\(\d+(?:\.\d+)?\)\s*", "", text).strip()
+    text = re.sub(r"\s*\(\d+(?:\.\d+)?\)$", "", text).strip()
+
+    if not text:
+        return None
+
+    # Odrzuć clue'y, które wyglądają na junk - same słowa techniczne z numeracją
+    if re.match(r"^(info|undefined|brak|puste)\s*(?:\(\d+\))?$", text.lower()):
+        return None
+
+    # Jeśli mamy słowo klucza, sprawdź czy definicja go nie zawiera
+    if word:
+        word_lower = word.lower()
+        text_lower = text.lower()
+        
+        # Unikaj definicji, które zaczynają się od samego słowa lub jego formy
+        if text_lower.startswith(word_lower) or text_lower.startswith(f"rodzaj {word_lower}") or \
+           text_lower.startswith(f"forma {word_lower}"):
+            return None
+        
+        # Unikaj definicji, które są tylko powtórzeniem słowa
+        if text_lower == word_lower:
+            return None
+
+    if len(text) > 120:
+        text = text[:117].rsplit(" ", 1)[0] + "..."
+
+    return text
+
+
+def _get_clue_sjp(word):
+    """
+    Pobiera definicję z SJP.pl.
+
+    Szuka konkretnie w paragrafach i listach, unikając
+    technicznych elementów strony.
+    """
+    url = f"https://sjp.pl/{word}"
 
     try:
-        response = requests.get(url, timeout=5)
+        response = requests.get(
+            url,
+            timeout=10,
+            headers={
+                "User-Agent": (
+                    "Mozilla/5.0 "
+                    "(Windows NT 10.0; Win64; x64) "
+                    "AppleWebKit/537.36 "
+                    "Chrome/140.0 Safari/537.36"
+                )
+            },
+        )
+
         if response.status_code != 200:
             return None
 
-        data = response.json()
+        soup = BeautifulSoup(response.text, "html.parser")
 
-        # struktura: data[0]["meanings"][0]["definitions"][0]["definition"]
-        meanings = data[0].get("meanings", [])
-        if not meanings:
+        # Szukamy sekcji "znaczenie:" w tekście
+        marker = None
+        for element in soup.find_all(string=re.compile(r"^\s*znaczenie\s*:", re.I)):
+            marker = element.parent
+            break
+
+        if marker is None:
             return None
 
-        definitions = meanings[0].get("definitions", [])
-        if not definitions:
-            return None
+        # Szukamy tylko w paragrafach i elementach listy (dd, li)
+        # Po znalezieniu markera "znaczenie:"
+        for element in marker.find_all_next():
+            # Jeśli natrafimy na nagłówek, kończymy szukanie
+            if element.name in {"h1", "h2", "h3"}:
+                break
 
-        clue = definitions[0].get("definition", "").strip()
-        if not clue:
-            return None
+            # Bierzemy tekst tylko z rzeczywistych elementów zawartości
+            if element.name not in {"p", "dd", "li", "div"}:
+                continue
 
-        # skróć do stylu krzyżówkowego
-        if len(clue) > 120:
-            clue = clue[:117] + "..."
+            value = element.get_text(" ", strip=True)
+            if not value:
+                continue
 
-        return clue
+            # Usuń marker "znaczenie:" jeśli nadal tam jest
+            value = re.sub(r"^\s*znaczenie\s*:\s*", "", value, flags=re.I).strip()
+            
+            # Oczyść i zwaliduj - przekaż słowo, żeby sprawdzić czy się nie powtarza
+            value = _clean_clue(value, word=word)
+
+            if value and len(value) >= 5:
+                return value
+
+        return None
 
     except Exception:
-        return 
+        return None
+
+
+def _get_clue_wiktionary(word):
+    """
+    Pobiera pierwszą polską definicję z Wikisłownika.
+    Celujemy bezpośrednio w sekcję "znaczenia", dzięki czemu
+    nie łapiemy elementów menu strony.
+    """
+    url = f"https://pl.wiktionary.org/wiki/{word}"
+
+    try:
+        response = requests.get(
+            url,
+            timeout=10,
+            headers={
+                "User-Agent": (
+                    "Mozilla/5.0 "
+                    "(Windows NT 10.0; Win64; x64) "
+                    "AppleWebKit/537.36 "
+                    "Chrome/140.0 Safari/537.36"
+                )
+            },
+        )
+
+        if response.status_code != 200:
+            return None
+
+        soup = BeautifulSoup(response.text, "html.parser")
+
+        # Najpierw znajdź sekcję języka polskiego.
+        polish_section = None
+
+        for heading in soup.find_all(["h2", "h3"]):
+            heading_text = heading.get_text(" ", strip=True).lower()
+
+            if "język polski" in heading_text:
+                polish_section = heading
+                break
+
+        if polish_section is None:
+            return None
+
+        # W obrębie polskiej sekcji znajdź nagłówek "znaczenia".
+        meanings_heading = None
+
+        for element in polish_section.find_all_next(["h3", "h4"], limit=30):
+            text_value = element.get_text(" ", strip=True).lower()
+
+            if "znaczenia" == text_value:
+                meanings_heading = element
+                break
+
+            # Jeżeli trafiliśmy na kolejną dużą sekcję, kończymy.
+            if element.name == "h2":
+                break
+
+        if meanings_heading is None:
+            return None
+
+        # Pierwsze <li> po "znaczenia" zawiera zwykle definicję.
+        for element in meanings_heading.find_all_next():
+            if element.name in {"h2", "h3"}:
+                break
+
+            if element.name == "li":
+                clue = _clean_clue(element.get_text(" ", strip=True), word=word)
+
+                if clue:
+                    return clue
+
+        return None
+
+    except Exception:
+        return None
+
+
+def get_clue(word):
+    """
+    Pobiera prawdziwą polską definicję słowa.
+
+    Kolejność:
+      1. lokalny cache
+      2. SJP.pl
+      3. Wikisłownik
+
+    Cache zapisujemy w clue_cache.json, żeby przy kolejnych
+    uruchomieniach nie odpytwać ponownie tych samych stron.
+    """
+    cache_file = Path("clue_cache.json")
+
+    try:
+        if cache_file.exists():
+            with cache_file.open("r", encoding="utf-8") as f:
+                cache = json.load(f)
+        else:
+            cache = {}
+    except Exception:
+        cache = {}
+
+    word = word.strip().lower()
+
+    if word in cache:
+        cached = cache[word]
+        return cached if cached else None
+
+    clue = _get_clue_sjp(word)
+
+    if clue is None:
+        clue = _get_clue_wiktionary(word)
+
+    # Zapamiętaj również brak definicji, żeby nie odpytwać
+    # ponownie tego samego słowa przy kolejnym uruchomieniu.
+    cache[word] = clue
+
+    try:
+        with cache_file.open("w", encoding="utf-8") as f:
+            json.dump(
+                cache,
+                f,
+                ensure_ascii=False,
+                indent=2,
+            )
+    except Exception:
+        pass
+
+    return clue
 
 
 def load_words(filename):
@@ -514,8 +729,7 @@ def validate_solution(slots, grid, used_words):
 
 def create_output(blocks, slots, grid):
 
-    horizontal = []
-    vertical = []
+    words = []
 
     for slot in slots:
 
@@ -533,10 +747,7 @@ def create_output(blocks, slots, grid):
             "clue": clue if clue else "Brak definicji"
         }
 
-        if slot.direction == "horizontal":
-            horizontal.append(entry)
-        else:
-            vertical.append(entry)
+        words.append(entry)
 
     return {
         "size": SIZE,
@@ -550,11 +761,7 @@ def create_output(blocks, slots, grid):
             for r in range(SIZE)
         ],
 
-        "words": horizontal + vertical,
-
-        "horizontal": horizontal,
-
-        "vertical": vertical
+        "words": words
     }
 
 
@@ -581,21 +788,23 @@ def print_board(data):
 
     print("POZIOMO:")
 
-    for word in data["horizontal"]:
-        print(
-            f'  {word["word"]} '
-            f'({word["row"] + 1},{word["col"] + 1})'
-        )
+    for word in data["words"]:
+        if word["direction"] == "horizontal":
+            print(
+                f'  {word["word"]} '
+                f'({word["row"] + 1},{word["col"] + 1})'
+            )
 
     print()
 
     print("PIONOWO:")
 
-    for word in data["vertical"]:
-        print(
-            f'  {word["word"]} '
-            f'({word["row"] + 1},{word["col"] + 1})'
-        )
+    for word in data["words"]:
+        if word["direction"] == "vertical":
+            print(
+                f'  {word["word"]} '
+                f'({word["row"] + 1},{word["col"] + 1})'
+            )
 
 
 # ============================================================
