@@ -27,7 +27,7 @@ export default async function NewPuzzlePage() {
             <div className="relative z-10 mx-auto w-full max-w-5xl">
                 <header className="border-b border-slate-700 pb-6">
                     <Link
-                        href="/admin"
+                        href="/admin/connections"
                         className="inline-flex rounded-full border border-slate-600 px-4 py-2 text-sm font-bold text-slate-300 transition hover:border-white hover:text-white"
                     >
                         ← Wróć do panelu

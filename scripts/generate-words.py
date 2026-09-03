@@ -18,7 +18,7 @@ SGJP_URL = (
 
 OUTPUT_FILE = "polskie_slowa.json"
 
-MAX_PER_GROUP = 1000
+MAX_PER_GROUP = 10000
 
 WORD_LENGTHS = {3, 4, 5}
 

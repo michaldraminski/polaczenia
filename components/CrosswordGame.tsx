@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import { GameModal } from "./GameModal";
 
 export type CrosswordData = {
@@ -52,6 +52,7 @@ export function CrosswordGame({ crosswordData }: { crosswordData: CrosswordData 
     const [selectedDirection, setSelectedDirection] = useState<"horizontal" | "vertical">("horizontal");
     const [highlightedWords, setHighlightedWords] = useState<Set<number>>(new Set());
     const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
+    const isPointerFocusRef = useRef(false);
 
     // Rozdziel wskazówki na poziome i pionowe - każda grupa ma własne numery 1-5
     const acrossClues = useMemo(
@@ -152,6 +153,28 @@ export function CrosswordGame({ crosswordData }: { crosswordData: CrosswordData 
         }, 0);
     };
 
+    const handleCellFocus = (row: number, col: number) => {
+        if (isPointerFocusRef.current) {
+            isPointerFocusRef.current = false;
+            return;
+        }
+
+        if (grid[row][col].value === "#") return;
+
+        const wordIndices = grid[row][col].wordIndices;
+        const wordToSelect = wordIndices.find(
+            (idx) => crosswordData.words[idx].direction === selectedDirection,
+        ) ?? wordIndices[0];
+
+        if (wordToSelect !== undefined) {
+            const word = crosswordData.words[wordToSelect];
+            setSelectedDirection(word.direction);
+            setHighlightedWords(new Set([wordToSelect]));
+        }
+
+        setSelectedCell({ row, col });
+    };
+
     const handleClueClick = (wordIdx: number) => {
         const word = crosswordData.words[wordIdx];
         setSelectedCell({ row: word.row, col: word.col });
@@ -175,6 +198,14 @@ export function CrosswordGame({ crosswordData }: { crosswordData: CrosswordData 
 
         const letter = value.toUpperCase().slice(-1);
         if (!/^[A-Z]?$/.test(letter)) return;
+
+        const wordToHighlight = grid[row][col].wordIndices.find(
+            (idx) => crosswordData.words[idx].direction === selectedDirection,
+        ) ?? grid[row][col].wordIndices[0];
+
+        if (wordToHighlight !== undefined) {
+            setHighlightedWords(new Set([wordToHighlight]));
+        }
 
         setGrid((current) => {
             const newGrid = current.map((r) => [...r]);
@@ -364,7 +395,11 @@ export function CrosswordGame({ crosswordData }: { crosswordData: CrosswordData 
                                         value={cell.value === "#" ? "" : cell.value}
                                         onChange={(e) => handleCellInput(rowIdx, colIdx, e.target.value)}
                                         onKeyDown={(e) => handleKeyDown(rowIdx, colIdx, e)}
+                                        onMouseDown={() => {
+                                            isPointerFocusRef.current = true;
+                                        }}
                                         onClick={() => handleCellClick(rowIdx, colIdx)}
+                                        onFocus={() => handleCellFocus(rowIdx, colIdx)}
                                         disabled={cell.value === "#"}
                                         maxLength={1}
                                         className={`h-12 w-12 border text-center text-base font-bold transition-colors sm:h-16 sm:w-16 sm:text-xl lg:h-20 lg:w-20 lg:text-2xl ${

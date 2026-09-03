@@ -59,7 +59,7 @@ export default async function PuzzlePage({
                 {/* Nagłówek */}
                 <header className="border-b border-slate-700 pb-7">
                     <Link
-                        href="/admin"
+                        href="/admin/connections"
                         className="inline-flex items-center rounded-full border border-slate-600 px-4 py-2 text-sm font-bold text-slate-300 transition hover:border-slate-300 hover:text-white"
                     >
                         ← Wróć do panelu

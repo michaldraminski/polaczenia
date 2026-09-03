@@ -8,8 +8,8 @@ with open("polskie_slowa.json", "r", encoding="utf-8") as f:
 # Progi częstotliwości (sprawdzone w praktyce)
 # freq > 1e-4  → bardzo częste
 # freq > 1e-6  → średnie
-# freq <= 1e-6 → rzadkie / dziwne / archaiczne / techniczne
-THRESHOLD = 1e-6
+# freq <= 1e-7 → rzadkie / dziwne / archaiczne / techniczne
+THRESHOLD = 1e-7
 
 def is_common(word):
     return word_frequency(word, "pl") > THRESHOLD

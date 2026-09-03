@@ -1,26 +1,10 @@
-import { CrosswordGame, type CrosswordData } from "../../components/CrosswordGame";
-import crosswordData from "../../scripts/crossword.json";
+import { CrosswordGame } from "../../components/CrosswordGame";
 import { getTodaysCrossword } from "../../lib/crosswords";
 
 export const dynamic = "force-dynamic";
 
-const typedCrosswordData: CrosswordData = {
-    ...crosswordData,
-    words: crosswordData.words.map((word) => {
-        if (word.direction !== "horizontal" && word.direction !== "vertical") {
-            throw new Error(`Nieprawidłowy kierunek słowa: ${word.direction}`);
-        }
-
-        return {
-            ...word,
-            direction: word.direction,
-        };
-    }),
-};
-
 export default async function CrosswordPage() {
-    const databaseCrossword = await getTodaysCrossword();
-    const activeCrossword = databaseCrossword ?? typedCrosswordData;
+    const activeCrossword = await getTodaysCrossword();
 
     return (
         <main className="relative min-h-screen overflow-x-hidden bg-[#0b1220] px-4 py-8 text-slate-100 sm:px-6 sm:py-12">
@@ -46,7 +30,18 @@ export default async function CrosswordPage() {
                     </p>
                 </header>
 
-                <CrosswordGame crosswordData={activeCrossword} />
+                {activeCrossword ? (
+                    <CrosswordGame crosswordData={activeCrossword} />
+                ) : (
+                    <div className="mx-auto max-w-md rounded-2xl border border-slate-700 bg-slate-800/80 p-8 text-center shadow-xl">
+                        <h2 className="text-xl font-bold text-white">
+                            Brak krzyżówki na dziś
+                        </h2>
+                        <p className="mt-2 text-sm leading-6 text-slate-400">
+                            Wróć później, gdy plansza zostanie opublikowana.
+                        </p>
+                    </div>
+                )}
             </div>
         </main>
     );

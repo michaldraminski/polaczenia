@@ -41,3 +41,23 @@ export async function PATCH(request: Request, context: RouteContext) {
     }
     return Response.json({ puzzleId });
 }
+
+export async function DELETE(_request: Request, context: RouteContext) {
+    const authClient = await createAuthServerClient();
+    const { data: { user }, error: authError } = await authClient.auth.getUser();
+    if (authError || !user) return Response.json({ error: "Brak uprawnień." }, { status: 401 });
+
+    const puzzleId = Number((await context.params).id);
+    if (!Number.isInteger(puzzleId)) return Response.json({ error: "Niepoprawny identyfikator planszy." }, { status: 400 });
+
+    const supabase = createServerSupabaseClient();
+    const { error } = await supabase.rpc("delete_scheduled_crossword", {
+        target_puzzle_id: puzzleId,
+    });
+
+    if (error) {
+        return Response.json({ error: error.message.includes("nie istnieje") ? "Krzyżówka nie istnieje." : "Nie udało się usunąć krzyżówki." }, { status: 400 });
+    }
+
+    return Response.json({ puzzleId });
+}

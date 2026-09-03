@@ -1,4 +1,5 @@
 import { execFile } from "node:child_process";
+import { randomInt } from "node:crypto";
 import { promisify } from "node:util";
 import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -60,7 +61,8 @@ export async function POST(request: Request) {
         const scriptPath = path.join(process.cwd(), "scripts", "crossword-generator.py");
         const scriptsDirectory = path.dirname(scriptPath);
         const python = process.env.PYTHON_BIN || (process.platform === "win32" ? "py" : "python3");
-        await executeFile(python, [scriptPath, "--output", outputPath], { cwd: scriptsDirectory, maxBuffer: 1024 * 1024 });
+        const generatorSeed = randomInt(0, 2_147_483_647);
+        await executeFile(python, [scriptPath, "--output", outputPath, "--seed", String(generatorSeed)], { cwd: scriptsDirectory, maxBuffer: 1024 * 1024 });
         const generated = JSON.parse(await readFile(outputPath, "utf8")) as {
             size: number;
             grid: string[][];
@@ -94,7 +96,7 @@ export async function POST(request: Request) {
             clue: word.clue,
             position: index + 1,
         }));
-        const { error: boardError } = await supabase.from("crossword_puzzles").insert({ puzzle_id: puzzle.id, size: generated.size, grid: generated.grid });
+        const { error: boardError } = await supabase.from("crossword_puzzles").insert({ puzzle_id: puzzle.id, size: generated.size, grid: generated.grid, generator_seed: generatorSeed });
         const { error: entriesError } = await supabase.from("crossword_entries").insert(entries);
         if (boardError || entriesError) throw new Error(boardError?.message || entriesError?.message || "Nie udało się zapisać haseł.");
         return Response.json({ puzzleId: puzzle.id }, { status: 201 });

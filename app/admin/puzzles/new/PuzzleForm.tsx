@@ -232,7 +232,7 @@ export default function PuzzleForm({
                 );
             }
 
-            router.push("/admin");
+            router.push("/admin/connections");
             router.refresh();
         } catch (error) {
             setMessage(
@@ -507,7 +507,7 @@ export default function PuzzleForm({
 
             <div className="flex flex-col-reverse gap-3 border-t border-slate-700 pt-6 sm:flex-row sm:justify-end">
                 <a
-                    href="/admin"
+                    href="/admin/connections"
                     className="rounded-full border border-slate-600 px-6 py-3 text-center font-bold text-slate-300 transition hover:border-slate-300 hover:text-white"
                 >
                     Anuluj

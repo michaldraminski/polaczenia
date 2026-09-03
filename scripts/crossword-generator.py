@@ -604,7 +604,7 @@ def undo(changed, grid):
 # BACKTRACKING
 # ============================================================
 
-def solve_slots(slots, grid, words_by_length, used_words):
+def solve_slots(slots, grid, words_by_length, used_words, rng):
     """
     Backtracking.
 
@@ -621,8 +621,8 @@ def solve_slots(slots, grid, words_by_length, used_words):
     # Wybierz najbardziej ograniczony slot
     # --------------------------------------------------------
 
-    best_slot = None
-    best_candidates = None
+    best_slots = []
+    best_candidate_count = None
 
     for slot in slots:
 
@@ -643,14 +643,28 @@ def solve_slots(slots, grid, words_by_length, used_words):
             return False
 
         if (
-            best_candidates is None
-            or len(candidates) < len(best_candidates)
+            best_candidate_count is None
+            or len(candidates) < best_candidate_count
         ):
-            best_slot = slot
-            best_candidates = candidates
+            best_slots = [slot]
+            best_candidate_count = len(candidates)
+        elif len(candidates) == best_candidate_count:
+            best_slots.append(slot)
+
+    best_slot = rng.choice(best_slots)
+    best_candidates = get_candidates(
+        best_slot,
+        grid,
+        words_by_length,
+    )
+    best_candidates = [
+        word
+        for word in best_candidates
+        if word not in used_words
+    ]
 
     # Losowa kolejność -> różne krzyżówki
-    random.shuffle(best_candidates)
+    rng.shuffle(best_candidates)
 
     remaining_slots = [
         slot
@@ -676,7 +690,8 @@ def solve_slots(slots, grid, words_by_length, used_words):
             remaining_slots,
             grid,
             words_by_length,
-            used_words
+            used_words,
+            rng,
         ):
             return True
 
@@ -880,7 +895,8 @@ def generate_crossword(words, seed=None):
             slots,
             grid,
             words_by_length,
-            used_words
+            used_words,
+            rng,
         ):
 
             if not validate_solution(

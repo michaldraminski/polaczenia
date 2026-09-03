@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { AdminCrossword } from "../../../lib/admin-crosswords";
+import DeleteCrosswordButton from "./DeleteCrosswordButton";
 
 export default function CrosswordAdminClient({ crosswords }: { crosswords: AdminCrossword[] }) {
     const router = useRouter();
@@ -32,6 +33,6 @@ export default function CrosswordAdminClient({ crosswords }: { crosswords: Admin
             <button type="button" onClick={generate} disabled={isGenerating} className="rounded-full bg-[#d4af55] px-5 py-3 font-bold text-slate-950 disabled:cursor-wait disabled:opacity-60">{isGenerating ? "Generowanie..." : "Generuj krzyżówkę"}</button>
         </div>
         {message && <p className="mt-5 rounded-xl border border-red-400/40 bg-red-950/40 p-4 text-sm text-red-200">{message}</p>}
-        {filtered.length === 0 ? <div className="mt-8 rounded-2xl border border-slate-700 bg-slate-800/70 p-10 text-center text-slate-400">Brak krzyżówek w tej sekcji.</div> : <div className="mt-8 space-y-4">{filtered.map((crossword) => <article key={crossword.id} className="rounded-2xl border border-slate-700 bg-slate-800/80 p-5"><div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"><div><h2 className="text-xl font-bold">{crossword.title}</h2><p className="mt-1 text-sm text-slate-400">Data publikacji: {crossword.publicationDate || "Brak daty"} · {crossword.entries.length} haseł</p></div><Link href={`/admin/crossword/${crossword.id}`} className="rounded-full border border-slate-500 px-5 py-2.5 text-center text-sm font-bold hover:bg-white hover:text-slate-900">Edytuj</Link></div></article>)}</div>}
+        {filtered.length === 0 ? <div className="mt-8 rounded-2xl border border-slate-700 bg-slate-800/70 p-10 text-center text-slate-400">Brak krzyżówek w tej sekcji.</div> : <div className="mt-8 space-y-4">{filtered.map((crossword) => <article key={crossword.id} className="rounded-2xl border border-slate-700 bg-slate-800/80 p-5"><div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"><div><h2 className="text-xl font-bold">{crossword.title}</h2><p className="mt-1 text-sm text-slate-400">Data publikacji: {crossword.publicationDate || "Brak daty"} · {crossword.entries.length} haseł</p></div><div className="flex flex-wrap gap-2"><Link href={`/admin/crossword/${crossword.id}`} className="rounded-full border border-slate-500 px-5 py-2.5 text-center text-sm font-bold hover:bg-white hover:text-slate-900">Edytuj</Link><DeleteCrosswordButton puzzleId={crossword.id} /></div></div></article>)}</div>}
     </>;
 }
