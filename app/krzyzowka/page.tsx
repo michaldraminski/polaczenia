@@ -1,5 +1,8 @@
 import { CrosswordGame, type CrosswordData } from "../../components/CrosswordGame";
 import crosswordData from "../../scripts/crossword.json";
+import { getTodaysCrossword } from "../../lib/crosswords";
+
+export const dynamic = "force-dynamic";
 
 const typedCrosswordData: CrosswordData = {
     ...crosswordData,
@@ -15,7 +18,10 @@ const typedCrosswordData: CrosswordData = {
     }),
 };
 
-export default function CrosswordPage() {
+export default async function CrosswordPage() {
+    const databaseCrossword = await getTodaysCrossword();
+    const activeCrossword = databaseCrossword ?? typedCrosswordData;
+
     return (
         <main className="relative min-h-screen overflow-x-hidden bg-[#0b1220] px-4 py-8 text-slate-100 sm:px-6 sm:py-12">
             <div className="game-background">
@@ -40,7 +46,7 @@ export default function CrosswordPage() {
                     </p>
                 </header>
 
-                <CrosswordGame crosswordData={typedCrosswordData} />
+                <CrosswordGame crosswordData={activeCrossword} />
             </div>
         </main>
     );

@@ -171,14 +171,12 @@ export async function getAdminPuzzles(): Promise<
 > {
     const supabase = createServerSupabaseClient();
 
-    const {
-        data: puzzleRows,
-        error: puzzlesError,
-    } = await supabase
+    const puzzleSelect = supabase
         .from("puzzles")
         .select(
             "id, title, publication_date, status, created_by_user_id, last_edited_by_user_id",
         )
+        .eq("game_type", "connections")
         .order("publication_date", {
             ascending: false,
             nullsFirst: true,
@@ -186,6 +184,29 @@ export async function getAdminPuzzles(): Promise<
         .order("created_at", {
             ascending: false,
         });
+
+    let { data: puzzleRows, error: puzzlesError } =
+        await puzzleSelect;
+
+    if (
+        puzzlesError?.message.includes(
+            "game_type does not exist",
+        )
+    ) {
+        ({ data: puzzleRows, error: puzzlesError } =
+            await supabase
+                .from("puzzles")
+                .select(
+                    "id, title, publication_date, status, created_by_user_id, last_edited_by_user_id",
+                )
+                .order("publication_date", {
+                    ascending: false,
+                    nullsFirst: true,
+                })
+                .order("created_at", {
+                    ascending: false,
+                }));
+    }
 
     if (puzzlesError) {
         throw new Error(

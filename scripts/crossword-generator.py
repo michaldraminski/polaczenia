@@ -130,7 +130,7 @@ def _get_clue_sjp(word):
     try:
         response = requests.get(
             url,
-            timeout=10,
+            timeout=3,
             headers={
                 "User-Agent": (
                     "Mozilla/5.0 "
@@ -196,7 +196,7 @@ def _get_clue_wiktionary(word):
     try:
         response = requests.get(
             url,
-            timeout=10,
+            timeout=3,
             headers={
                 "User-Agent": (
                     "Mozilla/5.0 "
@@ -779,7 +779,7 @@ def print_board(data):
 
         print(
             " ".join(
-                cell if cell != "#" else "■"
+                cell if cell != "#" else "#"
                 for cell in row
             )
         )

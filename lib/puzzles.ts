@@ -49,6 +49,7 @@ async function getPuzzle(
     let puzzleQuery = supabase
         .from("puzzles")
         .select("id, updated_at")
+        .eq("game_type", "connections")
         .eq("status", filters.status);
 
     if (filters.publicationDate) {
@@ -65,10 +66,38 @@ async function getPuzzle(
         );
     }
 
-    const {
+    let {
         data: puzzleRow,
         error: puzzleError,
     } = await puzzleQuery.maybeSingle();
+
+    if (
+        puzzleError?.message.includes(
+            "game_type does not exist",
+        )
+    ) {
+        let fallbackQuery = supabase
+            .from("puzzles")
+            .select("id, updated_at")
+            .eq("status", filters.status);
+
+        if (filters.publicationDate) {
+            fallbackQuery = fallbackQuery.eq(
+                "publication_date",
+                filters.publicationDate,
+            );
+        }
+
+        if (filters.puzzleId !== undefined) {
+            fallbackQuery = fallbackQuery.eq(
+                "id",
+                filters.puzzleId,
+            );
+        }
+
+        ({ data: puzzleRow, error: puzzleError } =
+            await fallbackQuery.maybeSingle());
+    }
 
     if (puzzleError) {
         throw new Error(
@@ -182,6 +211,7 @@ export async function getArchivedPuzzles(): Promise<
     const { data, error } = await supabase
         .from("puzzles")
         .select("id, title, publication_date")
+        .eq("game_type", "connections")
         .eq("status", "archived")
         .order("publication_date", {
             ascending: false,

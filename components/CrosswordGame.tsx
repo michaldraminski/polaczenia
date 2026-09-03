@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { GameModal } from "./GameModal";
 
 export type CrosswordData = {
     size: number;
@@ -50,6 +51,7 @@ export function CrosswordGame({ crosswordData }: { crosswordData: CrosswordData 
     const [selectedCell, setSelectedCell] = useState<Position | null>(null);
     const [selectedDirection, setSelectedDirection] = useState<"horizontal" | "vertical">("horizontal");
     const [highlightedWords, setHighlightedWords] = useState<Set<number>>(new Set());
+    const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
 
     // Rozdziel wskazówki na poziome i pionowe - każda grupa ma własne numery 1-5
     const acrossClues = useMemo(
@@ -177,6 +179,19 @@ export function CrosswordGame({ crosswordData }: { crosswordData: CrosswordData 
         setGrid((current) => {
             const newGrid = current.map((r) => [...r]);
             newGrid[row][col].value = letter;
+
+            const isComplete = newGrid.every((gridRow, gridRowIndex) =>
+                gridRow.every((cell, gridColIndex) =>
+                    cell.value === "#" ||
+                    (cell.value !== "" &&
+                        cell.value === crosswordData.grid[gridRowIndex][gridColIndex].toUpperCase())
+                )
+            );
+
+            if (isComplete) {
+                setIsSuccessModalOpen(true);
+            }
+
             return newGrid;
         });
 
@@ -427,6 +442,15 @@ export function CrosswordGame({ crosswordData }: { crosswordData: CrosswordData 
                     </div>
                 </div>
             </div>
+
+            {isSuccessModalOpen && (
+                <GameModal
+                    title="Gratulacje!"
+                    message="Krzyżówka została rozwiązana poprawnie."
+                    type="success"
+                    onClose={() => setIsSuccessModalOpen(false)}
+                />
+            )}
         </div>
     );
 }

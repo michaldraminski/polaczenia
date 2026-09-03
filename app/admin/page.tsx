@@ -146,6 +146,18 @@ export default async function AdminPage() {
                         </div>
                     </div>
                 </header>
+                <section className="mt-8 grid gap-4 sm:grid-cols-2">
+                    <Link href="/admin" className="rounded-2xl border border-emerald-400/50 bg-emerald-950/30 p-5 transition hover:border-emerald-300">
+                        <p className="text-sm font-bold uppercase tracking-wider text-emerald-300">Gra 1</p>
+                        <h2 className="mt-2 text-2xl font-bold">Połączenia</h2>
+                        <p className="mt-1 text-sm text-slate-400">Zarządzaj kategoriami i słowami.</p>
+                    </Link>
+                    <Link href="/admin/crossword" className="rounded-2xl border border-[#d4af55]/50 bg-[#3a2d12]/40 p-5 transition hover:border-[#d4af55]">
+                        <p className="text-sm font-bold uppercase tracking-wider text-[#d4af55]">Gra 2</p>
+                        <h2 className="mt-2 text-2xl font-bold">Krzyżówka</h2>
+                        <p className="mt-1 text-sm text-slate-400">Generuj plansze i edytuj wskazówki.</p>
+                    </Link>
+                </section>
                 {todaysPuzzle && (
                 <section className="mt-8">
                     <div>

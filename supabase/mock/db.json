@@ -2,6 +2,7 @@
   "puzzles": [
     {
       "id": 1,
+      "game_type": "connections",
       "title": "Demo puzzle",
       "publication_date": "2026-08-25",
       "status": "scheduled",
@@ -10,6 +11,7 @@
     },
     {
       "id": 2,
+      "game_type": "connections",
       "title": "asdasd",
       "publication_date": null,
       "status": "draft",
