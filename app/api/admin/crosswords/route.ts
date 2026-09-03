@@ -1,16 +1,11 @@
-import { execFile } from "node:child_process";
 import { randomInt } from "node:crypto";
-import { promisify } from "node:util";
-import { mkdtemp, readFile, rm } from "node:fs/promises";
-import { tmpdir } from "node:os";
-import path from "node:path";
 
 import { createAuthServerClient } from "../../../../lib/supabase/auth-server";
 import { createServerSupabaseClient } from "../../../../lib/supabase/server";
 import { getCurrentDateInPoland } from "../../../../lib/date";
+import { generateCrossword } from "../../../../lib/crossword-generator";
 
 export const runtime = "nodejs";
-const executeFile = promisify(execFile);
 
 type CreateCrosswordRequest = { title?: string; publicationDate?: string | null };
 
@@ -46,43 +41,6 @@ async function getFirstAvailableDate(
     }
 }
 
-async function runCrosswordGenerator(
-    pythonArgs: string[],
-    scriptPath: string,
-    scriptsDirectory: string,
-) {
-    const commands = [
-        process.env.PYTHON_BIN,
-        process.platform === "win32" ? "py" : "python3",
-        "python",
-        "python3",
-    ].filter((command, index, all): command is string =>
-        Boolean(command) && all.indexOf(command) === index,
-    );
-
-    for (const command of commands) {
-        try {
-            await executeFile(
-                command,
-                [scriptPath, ...pythonArgs],
-                {
-                    cwd: scriptsDirectory,
-                    maxBuffer: 1024 * 1024,
-                },
-            );
-            return;
-        } catch (error) {
-            if ((error as NodeJS.ErrnoException).code !== "ENOENT") {
-                throw error;
-            }
-        }
-    }
-
-    throw new Error(
-        "Nie znaleziono Pythona w środowisku serwera. Ustaw PYTHON_BIN albo uruchom aplikację w obrazie Docker z Pythonem.",
-    );
-}
-
 export async function POST(request: Request) {
     const authClient = await createAuthServerClient();
     const { data: { user }, error: authError } = await authClient.auth.getUser();
@@ -91,23 +49,10 @@ export async function POST(request: Request) {
     let body: CreateCrosswordRequest = {};
     try { body = await request.json(); } catch { /* optional body */ }
     const title = body.title?.trim() || "Krzyżóweczka";
-    const temporaryDirectory = await mkdtemp(path.join(tmpdir(), "polaczenia-crossword-"));
-    const outputPath = path.join(temporaryDirectory, "crossword.json");
 
     try {
-        const scriptPath = path.join(process.cwd(), "scripts", "crossword-generator.py");
-        const scriptsDirectory = path.dirname(scriptPath);
         const generatorSeed = randomInt(0, 2_147_483_647);
-        await runCrosswordGenerator(
-            ["--output", outputPath, "--seed", String(generatorSeed)],
-            scriptPath,
-            scriptsDirectory,
-        );
-        const generated = JSON.parse(await readFile(outputPath, "utf8")) as {
-            size: number;
-            grid: string[][];
-            words: Array<{ word: string; row: number; col: number; length: number; direction: "horizontal" | "vertical"; clue: string }>;
-        };
+        const generated = generateCrossword(generatorSeed);
         const supabase = createServerSupabaseClient();
         const requestedDate = await getFirstAvailableDate(
             supabase,
@@ -148,7 +93,5 @@ export async function POST(request: Request) {
                 ? "Baza danych nie ma jeszcze struktury krzyżówek. Zastosuj migrację 202609030001_create_crosswords.sql w Supabase SQL Editor."
                 : `Nie udało się wygenerować krzyżówki: ${message}`,
         }, { status: 400 });
-    } finally {
-        await rm(temporaryDirectory, { recursive: true, force: true });
     }
 }
