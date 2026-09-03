@@ -1,4 +1,5 @@
 import type { PublicPuzzle } from "../types/game";
+import { FitText } from "./FitText";
 
 type WordBoardProps = {
     words: PublicPuzzle["words"];
@@ -7,17 +8,6 @@ type WordBoardProps = {
     fadingWordIds: number[];
     onToggleWord: (wordId: number) => void;
 };
-
-function getFontSizeClass(value: string) {
-  const length = value.length;
-
-  if (length >= 15) return "text-[0.55rem]";
-  if (length >= 12) return "text-[0.65rem]";
-  if (length >= 10) return "text-[0.72rem]";
-  if (length >= 8) return "text-[0.82rem]";
-
-  return "text-[clamp(0.75rem,2.7vw,1rem)]";
-}
 
 export function WordBoard({
     words,
@@ -54,7 +44,7 @@ export function WordBoard({
                             px-1
                             py-2
                             text-center
-                            ${getFontSizeClass(word.value)}
+                            text-[clamp(0.75rem,2.7vw,1rem)]
                             font-bold
                             leading-tight
                             transition-all
@@ -92,15 +82,11 @@ export function WordBoard({
                             disabled:cursor-not-allowed
                         `}
                     >
-                        <span
-                            className={
-                            word.value.includes(" ")
-                                ? "min-w-0 max-w-full whitespace-normal break-words"
-                                : "min-w-0 max-w-full whitespace-nowrap"
-                            }
+                        <FitText
+                            className={word.value.includes(" ") ? "whitespace-normal break-normal" : "whitespace-nowrap"}
                         >
                             {word.value}
-                        </span>
+                        </FitText>
                         </button>
                 );
             })}
