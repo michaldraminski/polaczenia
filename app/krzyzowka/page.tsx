@@ -36,7 +36,7 @@ export default async function CrosswordPage() {
                     </div>
 
                     <h1 className="text-4xl font-extrabold tracking-[-0.045em] text-white sm:text-5xl">
-                        MINI KRZYŻÓWKA
+                        KRZYŻÓWECZKA
                     </h1>
 
                     <div className="mx-auto mt-5 h-px w-14 bg-[#d4af55]/70" />

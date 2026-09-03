@@ -2,7 +2,7 @@ import type { CrosswordPuzzle } from "../../types/crossword";
 
 export const testPuzzle: CrosswordPuzzle = {
     id: 1,
-    title: "Mini krzyżówka",
+    title: "Krzyżóweczka",
     author: "Test",
     
     grid: [
