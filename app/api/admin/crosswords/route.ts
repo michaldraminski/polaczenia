@@ -46,6 +46,43 @@ async function getFirstAvailableDate(
     }
 }
 
+async function runCrosswordGenerator(
+    pythonArgs: string[],
+    scriptPath: string,
+    scriptsDirectory: string,
+) {
+    const commands = [
+        process.env.PYTHON_BIN,
+        process.platform === "win32" ? "py" : "python3",
+        "python",
+        "python3",
+    ].filter((command, index, all): command is string =>
+        Boolean(command) && all.indexOf(command) === index,
+    );
+
+    for (const command of commands) {
+        try {
+            await executeFile(
+                command,
+                [scriptPath, ...pythonArgs],
+                {
+                    cwd: scriptsDirectory,
+                    maxBuffer: 1024 * 1024,
+                },
+            );
+            return;
+        } catch (error) {
+            if ((error as NodeJS.ErrnoException).code !== "ENOENT") {
+                throw error;
+            }
+        }
+    }
+
+    throw new Error(
+        "Nie znaleziono Pythona w środowisku serwera. Ustaw PYTHON_BIN albo uruchom aplikację w obrazie Docker z Pythonem.",
+    );
+}
+
 export async function POST(request: Request) {
     const authClient = await createAuthServerClient();
     const { data: { user }, error: authError } = await authClient.auth.getUser();
@@ -60,9 +97,12 @@ export async function POST(request: Request) {
     try {
         const scriptPath = path.join(process.cwd(), "scripts", "crossword-generator.py");
         const scriptsDirectory = path.dirname(scriptPath);
-        const python = process.env.PYTHON_BIN || (process.platform === "win32" ? "py" : "python3");
         const generatorSeed = randomInt(0, 2_147_483_647);
-        await executeFile(python, [scriptPath, "--output", outputPath, "--seed", String(generatorSeed)], { cwd: scriptsDirectory, maxBuffer: 1024 * 1024 });
+        await runCrosswordGenerator(
+            ["--output", outputPath, "--seed", String(generatorSeed)],
+            scriptPath,
+            scriptsDirectory,
+        );
         const generated = JSON.parse(await readFile(outputPath, "utf8")) as {
             size: number;
             grid: string[][];
