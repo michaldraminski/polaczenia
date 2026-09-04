@@ -1,5 +1,7 @@
+import { readFile, writeFile } from "node:fs/promises";
+import path from "node:path";
+
 import wordDictionary from "../scripts/slownik_bez_rzadkich.json";
-import clueCache from "../scripts/clue_cache.json";
 
 const SIZE = 5;
 const MIN_WORD_LENGTH = 3;
@@ -13,6 +15,8 @@ type Slot = {
     length: number;
     direction: Direction;
 };
+
+type ClueCache = Record<string, string | null>;
 
 export type GeneratedCrossword = {
     size: number;
@@ -224,28 +228,128 @@ function solve(
     return false;
 }
 
-function createOutput(blocks: boolean[][], slots: Slot[], grid: (string | null)[][]): GeneratedCrossword {
+const clueCachePath = path.join(process.cwd(), "scripts", "clue_cache.json");
+
+function decodeHtml(value: string): string {
+    return value
+        .replace(/<[^>]+>/g, " ")
+        .replace(/&nbsp;/gi, " ")
+        .replace(/&amp;/gi, "&")
+        .replace(/&quot;/gi, '"')
+        .replace(/&#39;|&apos;/gi, "'")
+        .replace(/&lt;/gi, "<")
+        .replace(/&gt;/gi, ">")
+        .replace(/&#(\d+);/g, (_, code: string) => String.fromCodePoint(Number(code)))
+        .replace(/\s+/g, " ")
+        .trim();
+}
+
+function cleanClue(value: string, word: string): string | null {
+    const clue = decodeHtml(value).replace(/^\s*(?:znaczenie|definicja)\s*:\s*/i, "");
+    if (clue.length < 5 || clue.toLowerCase() === word || clue.toLowerCase().startsWith(`${word} `)) return null;
+    return clue.length > 120 ? `${clue.slice(0, 117).trimEnd()}...` : clue;
+}
+
+async function fetchText(url: string): Promise<string | null> {
+    try {
+        const response = await fetch(url, {
+            headers: { "User-Agent": "Polaczenia crossword generator/1.0" },
+            signal: AbortSignal.timeout(5000),
+        });
+        return response.ok ? response.text() : null;
+    } catch {
+        return null;
+    }
+}
+
+async function fetchSjpClue(word: string): Promise<string | null> {
+    const html = await fetchText(`https://sjp.pl/${encodeURIComponent(word)}`);
+    if (!html) return null;
+    const markerIndex = html.search(/znaczenie\s*:/i);
+    if (markerIndex < 0) return null;
+    const section = html.slice(markerIndex, markerIndex + 12000);
+    const candidates = section.match(/<(?:p|dd|li|div)[^>]*>([\s\S]*?)<\/(?:p|dd|li|div)>/gi) ?? [];
+    for (const candidate of candidates) {
+        const clue = cleanClue(candidate, word);
+        if (clue) return clue;
+    }
+    return null;
+}
+
+async function fetchWiktionaryClue(word: string): Promise<string | null> {
+    const url = new URL("https://pl.wiktionary.org/w/api.php");
+    url.searchParams.set("action", "parse");
+    url.searchParams.set("page", word);
+    url.searchParams.set("prop", "text");
+    url.searchParams.set("format", "json");
+    url.searchParams.set("origin", "*");
+    const response = await fetchText(url.toString());
+    if (!response) return null;
+    try {
+        const html = (JSON.parse(response) as { parse?: { text?: { "*"?: string } } }).parse?.text?.["*"];
+        if (!html) return null;
+        const meanings = html.match(/<h[23][^>]*>[\s\S]*?znaczenia[\s\S]*?<\/h[23]>([\s\S]*?)(?=<h[23]|$)/i)?.[1];
+        const candidates = (meanings ?? html).match(/<li[^>]*>([\s\S]*?)<\/li>/gi) ?? [];
+        for (const candidate of candidates) {
+            const clue = cleanClue(candidate, word);
+            if (clue) return clue;
+        }
+    } catch {
+        return null;
+    }
+    return null;
+}
+
+async function loadClueCache(): Promise<ClueCache> {
+    try {
+        return JSON.parse(await readFile(clueCachePath, "utf8")) as ClueCache;
+    } catch {
+        return {};
+    }
+}
+
+async function getClue(word: string, cache: ClueCache): Promise<string> {
+    if (typeof cache[word] === "string" && cache[word].trim()) return cache[word];
+
+    const clue = await fetchSjpClue(word) ?? await fetchWiktionaryClue(word);
+    cache[word] = clue;
+    return clue ?? "Brak definicji";
+}
+
+async function saveClueCache(cache: ClueCache): Promise<void> {
+    try {
+        await writeFile(clueCachePath, `${JSON.stringify(cache, null, 2)}\n`, "utf8");
+    } catch {
+        // Cache jest optymalizacją; brak możliwości zapisu nie powinien blokować generowania.
+    }
+}
+
+async function createOutput(blocks: boolean[][], slots: Slot[], grid: (string | null)[][]): Promise<GeneratedCrossword> {
+    const cache = await loadClueCache();
+    const words = slots.map((slot) => getCells(slot).map(([row, col]) => grid[row][col]).join(""));
+    const clues = await Promise.all(words.map((word) => getClue(word.toLowerCase(), cache)));
+    await saveClueCache(cache);
+
     return {
         size: SIZE,
         grid: blocks.map((row, rowIndex) =>
             row.map((isBlock, colIndex) => (isBlock ? "#" : grid[rowIndex][colIndex] ?? "#")),
         ),
-        words: slots.map((slot) => {
-            const word = getCells(slot).map(([row, col]) => grid[row][col]).join("");
-            const cachedClue = clueCache[word.toLowerCase() as keyof typeof clueCache];
+        words: slots.map((slot, index) => {
+            const word = words[index];
             return {
                 word,
                 row: slot.row,
                 col: slot.col,
                 length: slot.length,
                 direction: slot.direction,
-                clue: typeof cachedClue === "string" && cachedClue.trim() ? cachedClue : "Brak definicji",
+                clue: clues[index],
             };
         }),
     };
 }
 
-export function generateCrossword(seed: number): GeneratedCrossword {
+export async function generateCrossword(seed: number): Promise<GeneratedCrossword> {
     const random = new SeededRandom(seed);
     const words = getWords();
 

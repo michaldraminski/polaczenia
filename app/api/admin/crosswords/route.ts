@@ -52,7 +52,7 @@ export async function POST(request: Request) {
 
     try {
         const generatorSeed = randomInt(0, 2_147_483_647);
-        const generated = generateCrossword(generatorSeed);
+        const generated = await generateCrossword(generatorSeed);
         const supabase = createServerSupabaseClient();
         const requestedDate = await getFirstAvailableDate(
             supabase,
